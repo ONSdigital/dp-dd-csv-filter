@@ -1,7 +1,7 @@
 dp-csv-filter
 ================
 
-Application retrieves a specified CSV file from AWS s3 bucket, 
+Application retrieves a specified CSV file from AWS s3 bucket, and filters it by dimension values.  The output is then written to a new file in an AWS s3 bucket.
 
 The ```/filter``` endpoint accepts HTTP POST request with a FilterRequest body ```{"filePath": "$PATH_TO_FILE$"}```
 

@@ -26,7 +26,7 @@ type FilterRequest struct {
 	FilePath string `json:"filePath"`
 }
 
-var unsupoprtedFileTypeErr = errors.New("Unspported file type.")
+var unsupportedFileTypeErr = errors.New("Unspported file type.")
 var awsClientErr = errors.New("Error while attempting get to get from from AWS s3 bucket.")
 var filePathParamMissingErr = errors.New("No filePath value was provided.")
 var awsService = aws.NewService()
@@ -65,7 +65,7 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if fileType := filepath.Ext(splitterReq.FilePath); fileType != csvFileExt {
-		log.Error(unsupoprtedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
+		log.Error(unsupportedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
 		WriteResponse(w, filterRespUnsupportedFileType, http.StatusBadRequest)
 		return
 	}
@@ -75,7 +75,14 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 		WriteResponse(w, FilterResponse{err.Error()}, http.StatusBadRequest)
 		return
 	}
+
+
+	// todo this need the dimensions from the call/message
 	csvProcessor.Process(awsReader, nil, nil)
+
+
+
+
 	WriteResponse(w, filterResponseSuccess, http.StatusOK)
 }
 

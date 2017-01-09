@@ -7,47 +7,29 @@ import (
 	"os"
 	"bufio"
 	"fmt"
-	"path/filepath"
 )
 
 func TestProcessor(t *testing.T) {
 
-	// todo - how to handle test resources in GO
-	inputFileLocation := "/Users/allen/projects/ons/src/github.com/ONSdigital/dp-dd-csv-filter/sample_csv/Open-Data-new-format.csv"
-	outputFileLocation := "/Users/allen/projects/ons/src/github.com/ONSdigital/dp-dd-csv-filter/build/wibble.csv"
+	inputFileLocation := "../sample_csv/Open-Data-new-format.csv"
+	outputFileLocation := "../build/wibble.csv"
 
 	Convey("Given a processor pointing to a local csv file", t, func() {
 
 		var Processor = filter.NewCSVProcessor()
 
-		dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println("\n\nCurrent working dir: " + dir)
-
-		file, err := os.Open(inputFileLocation)
-		if err != nil {
-			fmt.Println("Error loading input file. Does it exist?", err.Error())
-			panic(err)
-		}
-
-		outFile, err := os.Create(outputFileLocation)
-		if err != nil {
-			fmt.Println("Error creating output file.", err.Error())
-			panic(err)
-		}
-
+		inputFile := openFile(inputFileLocation, "Error loading input file. Does it exist? ")
+		outputFile := createFile(outputFileLocation, "Error creating output file.")
 
 		Convey("When the processor is called with no dimensions to filter \n", func() {
 			dimensions := [][]string{}
-			Processor.Process(bufio.NewReader(file), bufio.NewWriter(outFile), dimensions)
+			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFileLocation) == 278, ShouldBeTrue)
 		})
 
 		Convey("When the processor is called with a single dimension to filter \n", func() {
 			dimensions := [][]string{{"NACE", "08 - Other mining and quarrying"}}
-			Processor.Process(bufio.NewReader(file), bufio.NewWriter(outFile), dimensions)
+			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFileLocation) == 10, ShouldBeTrue)
 
 		})
@@ -56,7 +38,7 @@ func TestProcessor(t *testing.T) {
 			dimensions := [][]string{
 				{"NACE", "08 - Other mining and quarrying"},
 				{"Prodcom Elements", "Work done"}}
-			Processor.Process(bufio.NewReader(file), bufio.NewWriter(outFile), dimensions)
+			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFileLocation) == 2, ShouldBeTrue)
 
 		})
@@ -78,4 +60,22 @@ func countLinesInFile(fileLocation string)(int) {
 	}
 	fmt.Println("Lines read: %d", counter)
 	return counter
+}
+
+func openFile(fileLocation string, errorMsg string)(*os.File) {
+	file, err := os.Open(fileLocation)
+	if err != nil {
+		fmt.Println(errorMsg, err.Error())
+		panic(err)
+	}
+	return file
+}
+
+func createFile(fileLocation string, errorMsg string)(*os.File) {
+	file, err := os.Create(fileLocation)
+	if err != nil {
+		fmt.Println(errorMsg, err.Error())
+		panic(err)
+	}
+	return file
 }

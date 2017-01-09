@@ -36,9 +36,7 @@ func getDimensionLocations(row []string) (map[string]int) {
 
 func (p *Processor) Process(r io.Reader, w io.Writer, dimensions [][]string) {
 
-	csvReader := csv.NewReader(r)
-	csvWriter := csv.NewWriter(w)
-
+	csvReader, csvWriter := csv.NewReader(r), csv.NewWriter(w)
 	defer csvWriter.Flush()
 
 	dimensionLocations := make(map[string]int)
