@@ -12,7 +12,8 @@ import (
 	"github.com/ONSdigital/dp-dd-csv-filter/filter"
 	"bufio"
 	"os"
-	"fmt"
+	"time"
+	"strconv"
 )
 
 const csvFileExt = ".csv"
@@ -26,8 +27,9 @@ type FilterResponse struct {
 
 // FilterRequest struct defines a filter request
 type FilterRequest struct {
-	FilePath string `json:"filePath"`
-	Dimensions map[string]string `json:"dimensions"` // todo support multiple values
+	InputFilePath  string `json:"inputFilePath"`
+	OutputFilePath string `json:"outputFilePath"`
+	Dimensions     map[string]string `json:"dimensions"`
 }
 
 var unsupportedFileTypeErr = errors.New("Unspported file type.")
@@ -62,33 +64,40 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if len(filterRequest.FilePath) == 0 {
+	if len(filterRequest.InputFilePath) == 0 {
 		log.Error(filePathParamMissingErr, nil)
 		WriteResponse(w, filterRespFilePathMissing, http.StatusBadRequest)
 		return
 	}
 
-	if fileType := filepath.Ext(filterRequest.FilePath); fileType != csvFileExt {
+	if fileType := filepath.Ext(filterRequest.InputFilePath); fileType != csvFileExt {
 		log.Error(unsupportedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
 		WriteResponse(w, filterRespUnsupportedFileType, http.StatusBadRequest)
 		return
 	}
 
-	awsReader, err := awsService.GetCSV(filterRequest.FilePath)
+	awsReader, err := awsService.GetCSV(filterRequest.InputFilePath)
 	if err != nil {
 		log.Error(awsClientErr, log.Data{"details": err.Error()})
 		WriteResponse(w, FilterResponse{err.Error()}, http.StatusBadRequest)
 		return
 	}
 
-	// todo - this needs passing in
-	outputFile, err := os.Create("/logs/wobble.csv")
+	outputFileLocation := "/var/tmp/csv_filter_" + strconv.Itoa(time.Now().Nanosecond()) + ".csv"
+	outputFile, err := os.Create(outputFileLocation)
 	if err != nil {
-		fmt.Println("Kablam!", err.Error())
+		log.Error(err, log.Data{"message": "Error creating temp output file in location " + outputFileLocation})
 		panic(err)
 	}
 
 	csvProcessor.Process(awsReader, bufio.NewWriter(outputFile), filterRequest.Dimensions)
+
+	tmpFile, err := os.Open(outputFileLocation)
+	if err != nil {
+		log.Error(err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
+	}
+
+	awsService.SaveFile(bufio.NewReader(tmpFile), filterRequest.OutputFilePath)
 
 	WriteResponse(w, filterResponseSuccess, http.StatusOK)
 }

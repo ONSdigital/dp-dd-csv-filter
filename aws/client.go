@@ -9,11 +9,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"io"
 	"io/ioutil"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 // AWSClient interface defining the AWS client.
 type AWSService interface {
 	GetCSV(filePath string) (io.Reader, error)
+	SaveFile(reader io.Reader, filePath string) (error)
 }
 
 // Client AWS client implementation.
@@ -22,6 +24,28 @@ type Service struct{}
 // NewClient create new AWSClient.
 func NewService() AWSService {
 	return &Service{}
+}
+
+func (cli *Service) SaveFile(reader io.Reader, filePath string) error {
+
+	uploader := s3manager.NewUploader(session.New(&aws.Config{Region: aws.String(config.AWSRegion)}))
+
+	result, err := uploader.Upload(&s3manager.UploadInput{
+		Body:   reader,
+		Bucket: aws.String(config.S3Bucket),
+		Key:    aws.String(filePath),
+	})
+
+	if err != nil {
+		log.Error(err, log.Data{"message": "Failed to upload"})
+		return err
+	}
+
+	log.Debug("Upload successful", log.Data{
+		"uploadLocation": result.Location,
+	})
+
+	return nil
 }
 
 // GetFile get the requested file from AWS.

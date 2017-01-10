@@ -144,7 +144,7 @@ func TestHandler(t *testing.T) {
 		mockAWSCli, mockCSVProcessor := setMocks(ioutil.ReadAll)
 		mockAWSCli.err = errors.New(awsErrMsg)
 
-		Handle(recorder, createRequest(FilterRequest{FilePath: uri}))
+		Handle(recorder, createRequest(FilterRequest{InputFilePath: uri}))
 		splitterResponse, status := extractResponseBody(recorder)
 
 		So(1, ShouldEqual, mockAWSCli.getTotalInvocations())
@@ -160,7 +160,7 @@ func TestHandler(t *testing.T) {
 
 		mockAWSCli, mockCSVProcessor := setMocks(ioutil.ReadAll)
 
-		Handle(recorder, createRequest(FilterRequest{FilePath: uri}))
+		Handle(recorder, createRequest(FilterRequest{InputFilePath: uri}))
 		splitterResponse, statusCode := extractResponseBody(recorder)
 
 		So(1, ShouldEqual, mockAWSCli.getTotalInvocations())
@@ -176,7 +176,7 @@ func TestHandler(t *testing.T) {
 
 		mockAWSCli, mockCSVProcessor := setMocks(ioutil.ReadAll)
 
-		Handle(recorder, createRequest(FilterRequest{FilePath: uri}))
+		Handle(recorder, createRequest(FilterRequest{InputFilePath: uri}))
 
 		splitterResponse, status := extractResponseBody(recorder)
 		So(0, ShouldEqual, mockAWSCli.getTotalInvocations())
