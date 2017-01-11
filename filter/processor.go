@@ -13,7 +13,7 @@ var Producer sarama.AsyncProducer
 
 // CSVProcessor defines the CSVProcessor interface.
 type CSVProcessor interface {
-	Process(r io.Reader, w io.Writer, dimensions map[string]string)
+	Process(r io.Reader, w io.Writer, dimensions map[string][]string)
 }
 
 // Processor implementation of the CSVProcessor interface.
@@ -34,7 +34,7 @@ func getDimensionLocations(row []string) (map[string]int) {
 	return result
 }
 
-func (p *Processor) Process(r io.Reader, w io.Writer, dimensions map[string]string) {
+func (p *Processor) Process(r io.Reader, w io.Writer, dimensions map[string][]string) {
 
 	csvReader, csvWriter := csv.NewReader(r), csv.NewWriter(w)
 	defer csvWriter.Flush()
@@ -77,18 +77,26 @@ func writeLine(csvWriter *csv.Writer, row []string) {
 	}
 }
 
-func allDimensionsMatch(row []string, dimensions map[string]string, dimensionLocations map[string]int) (bool) {
-	for targetDim, targetValue := range dimensions {
+func allDimensionsMatch(row []string, dimensions map[string][]string, dimensionLocations map[string]int) (bool) {
+	for targetDim, targetValues := range dimensions {
 
 		dimLocation := dimensionLocations[targetDim]
 		actualValue := row[dimLocation]
 
-		//fmt.Println("Search for: " + targetValue)
-		//fmt.Println("Actual: " + actualValue)
-
-		if actualValue != targetValue {
+		if !singleDimensionMatches(actualValue, targetValues) {
 			return false
 		}
 	}
 	return true
+}
+
+func singleDimensionMatches(actualValue string, targetValues []string)(bool) {
+	for _, v := range targetValues {
+		//fmt.Println("Search for: " + targetValue)
+		//fmt.Println("Actual: " + actualValue)
+		if v == actualValue {
+			return true
+		}
+	}
+	return false
 }

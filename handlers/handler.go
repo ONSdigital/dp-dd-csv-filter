@@ -29,7 +29,7 @@ type FilterResponse struct {
 type FilterRequest struct {
 	InputFilePath  string `json:"inputFilePath"`
 	OutputFilePath string `json:"outputFilePath"`
-	Dimensions     map[string]string `json:"dimensions"`
+	Dimensions     map[string][]string `json:"dimensions"`
 }
 
 var unsupportedFileTypeErr = errors.New("Unspported file type.")

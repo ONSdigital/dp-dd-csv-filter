@@ -22,24 +22,31 @@ func TestProcessor(t *testing.T) {
 		outputFile := createFile(outputFileLocation, "Error creating output file.")
 
 		Convey("When the processor is called with no dimensions to filter \n", func() {
-			dimensions := map[string]string{}
+			dimensions := map[string][]string{}
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
-			So(countLinesInFile(outputFileLocation) == 278, ShouldBeTrue)
+			So(countLinesInFile(outputFileLocation) == 277, ShouldBeTrue)
 		})
 
 		Convey("When the processor is called with a single dimension to filter \n", func() {
-			dimensions := map[string]string{"NACE":"08 - Other mining and quarrying"}
+			dimensions := map[string][]string{"NACE":{"08 - Other mining and quarrying"}}
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFileLocation) == 10, ShouldBeTrue)
 
 		})
-
 		Convey("When the processor is called with 2 dimensions to filter \n", func() {
-			dimensions := map[string]string{
-				"NACE":"08 - Other mining and quarrying",
-				"Prodcom Elements":"Work done"}
+			dimensions := map[string][]string{
+				"NACE":{"08 - Other mining and quarrying"},
+				"Prodcom Elements":{"Work done"} }
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFileLocation) == 2, ShouldBeTrue)
+
+		})
+		Convey("When the processor is called with 2 dimensions to filter and one of them has multiple acceptable values \n", func() {
+			dimensions := map[string][]string{
+				"NACE":{"08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"},
+				"Prodcom Elements":{"Work done", "Waste Products"} }
+			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
+			So(countLinesInFile(outputFileLocation) == 5, ShouldBeTrue)
 
 		})
 
