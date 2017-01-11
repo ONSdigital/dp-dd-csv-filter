@@ -1,0 +1,14 @@
+{
+  "inputFilePath": "Open-Data-for-filter.csv",
+  "outputFilePath": "Open-Data-filtered.csv",
+  "dimensions": {
+    "NACE": [
+      "08 - Other mining and quarrying",
+      "1012 - Processing and preserving of poultry meat"
+    ],
+    "Prodcom Elements": [
+      "Work done",
+      "Waste Products"
+    ]
+  }
+}
