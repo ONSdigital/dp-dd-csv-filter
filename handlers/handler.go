@@ -46,7 +46,7 @@ var filterRespFilePathMissing = FilterResponse{"No filePath parameter was specif
 var filterRespUnsupportedFileType = FilterResponse{"Unspported file type. Please specify a filePath for a .csv file."}
 var filterResponseSuccess = FilterResponse{"Your request is being processed."}
 
-// Handle CSV splitter handler. Get the requested file from AWS S3, split it and send each row to the configured Kafka Topic.
+// Handle CSV filter handler. Get the requested file from AWS S3, filter it to a temporary file, then upload the temporary file.
 func Handle(w http.ResponseWriter, req *http.Request) {
 	bytes, err := readFilterRequestBody(req.Body)
 	defer req.Body.Close()
@@ -64,23 +64,29 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	response := HandleRequest(filterRequest)
+	status := http.StatusBadRequest
+	if response == filterResponseSuccess {
+		status = http.StatusOK
+	}
+	WriteResponse(w, response, status)
+}
+
+func HandleRequest(filterRequest FilterRequest) FilterResponse {
 	if len(filterRequest.InputFilePath) == 0 {
 		log.Error(filePathParamMissingErr, nil)
-		WriteResponse(w, filterRespFilePathMissing, http.StatusBadRequest)
-		return
+		return filterRespFilePathMissing
 	}
 
 	if fileType := filepath.Ext(filterRequest.InputFilePath); fileType != csvFileExt {
 		log.Error(unsupportedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
-		WriteResponse(w, filterRespUnsupportedFileType, http.StatusBadRequest)
-		return
+		return filterRespUnsupportedFileType
 	}
 
 	awsReader, err := awsService.GetCSV(filterRequest.InputFilePath)
 	if err != nil {
 		log.Error(awsClientErr, log.Data{"details": err.Error()})
-		WriteResponse(w, FilterResponse{err.Error()}, http.StatusBadRequest)
-		return
+		return FilterResponse{err.Error()}
 	}
 
 	outputFileLocation := "/var/tmp/csv_filter_" + strconv.Itoa(time.Now().Nanosecond()) + ".csv"
@@ -99,7 +105,7 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 
 	awsService.SaveFile(bufio.NewReader(tmpFile), filterRequest.OutputFilePath)
 
-	WriteResponse(w, filterResponseSuccess, http.StatusOK)
+	return filterResponseSuccess
 }
 
 func setReader(reader requestBodyReader) {
