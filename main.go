@@ -5,11 +5,11 @@ import (
 	"github.com/ONSdigital/dp-dd-csv-filter/handlers"
 	"github.com/ONSdigital/dp-dd-csv-filter/message"
 	"github.com/ONSdigital/go-ns/log"
+	"github.com/bsm/sarama-cluster"
 	"github.com/gorilla/pat"
 	"net/http"
 	"os"
 	"os/signal"
-	"github.com/bsm/sarama-cluster"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 
 	consumerConfig := cluster.NewConfig()
 	consumer, err := cluster.NewConsumer([]string{config.KafkaAddr}, config.KafkaConsumerGroup, []string{config.KafkaConsumerTopic}, consumerConfig)
-	if  err != nil {
+	if err != nil {
 		log.Error(err, nil)
 		os.Exit(1)
 	}

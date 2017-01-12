@@ -11,7 +11,7 @@ import (
 
 func ConsumerLoop(listener Listener, filterer handlers.FilterFunc) {
 	for message := range listener.Messages() {
-		log.Debug("Message received from Kafka: " + string(message.Value), nil)
+		log.Debug("Message received from Kafka: "+string(message.Value), nil)
 		processMessage(message, filterer)
 	}
 }

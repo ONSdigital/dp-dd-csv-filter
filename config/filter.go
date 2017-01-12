@@ -60,10 +60,10 @@ func init() {
 func Load() {
 	// Will call init().
 	log.Debug("dp-csv-filter Configuration", log.Data{
-		bindAddrKey:  BindAddr,
-		kafkaAddrKey: KafkaAddr,
-		s3BucketKey:  S3Bucket,
-		awsRegionKey: AWSRegion,
+		bindAddrKey:        BindAddr,
+		kafkaAddrKey:       KafkaAddr,
+		s3BucketKey:        S3Bucket,
+		awsRegionKey:       AWSRegion,
 		kafkaConsumerGroup: KafkaConsumerGroup,
 		kafkaConsumerTopic: kafkaConsumerTopic,
 	})
