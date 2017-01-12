@@ -12,25 +12,24 @@ import (
 func TestProcessor(t *testing.T) {
 
 	inputFileLocation := "../sample_csv/Open-Data-for-filter.csv"
-	outputFileLocation := "../build/wibble.csv"
 
 	Convey("Given a processor pointing to a local csv file", t, func() {
 
 		var Processor = filter.NewCSVProcessor()
 
 		inputFile := openFile(inputFileLocation, "Error loading input file. Does it exist? ")
-		outputFile := createFile(outputFileLocation, "Error creating output file.")
+		outputFile := createFileInBuildDir("wibble.csv", "Error creating output file.")
 
 		Convey("When the processor is called with no dimensions to filter \n", func() {
 			dimensions := map[string][]string{}
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
-			So(countLinesInFile(outputFileLocation) == 277, ShouldBeTrue)
+			So(countLinesInFile(outputFile.Name()) == 277, ShouldBeTrue)
 		})
 
 		Convey("When the processor is called with a single dimension to filter \n", func() {
 			dimensions := map[string][]string{"NACE":{"08 - Other mining and quarrying"}}
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
-			So(countLinesInFile(outputFileLocation) == 10, ShouldBeTrue)
+			So(countLinesInFile(outputFile.Name()) == 10, ShouldBeTrue)
 
 		})
 		Convey("When the processor is called with 2 dimensions to filter \n", func() {
@@ -38,7 +37,7 @@ func TestProcessor(t *testing.T) {
 				"NACE":{"08 - Other mining and quarrying"},
 				"Prodcom Elements":{"Work done"} }
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
-			So(countLinesInFile(outputFileLocation) == 2, ShouldBeTrue)
+			So(countLinesInFile(outputFile.Name()) == 2, ShouldBeTrue)
 
 		})
 		Convey("When the processor is called with 2 dimensions to filter and one of them has multiple acceptable values \n", func() {
@@ -46,7 +45,7 @@ func TestProcessor(t *testing.T) {
 				"NACE":{"08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"},
 				"Prodcom Elements":{"Work done", "Waste Products"} }
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
-			So(countLinesInFile(outputFileLocation) == 5, ShouldBeTrue)
+			So(countLinesInFile(outputFile.Name()) == 5, ShouldBeTrue)
 
 		})
 
@@ -78,11 +77,17 @@ func openFile(fileLocation string, errorMsg string)(*os.File) {
 	return file
 }
 
-func createFile(fileLocation string, errorMsg string)(*os.File) {
-	file, err := os.Create(fileLocation)
+func createFileInBuildDir(fileName string, errorMsg string)(*os.File) {
+	if _, err := os.Stat("../build"); os.IsNotExist(err) {
+		os.Mkdir("../build", os.ModePerm)
+	}
+
+	file, err := os.Create("../build/" + fileName)
+
 	if err != nil {
 		fmt.Println(errorMsg, err.Error())
 		panic(err)
 	}
+
 	return file
 }
