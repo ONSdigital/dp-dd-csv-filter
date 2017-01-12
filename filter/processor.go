@@ -1,15 +1,14 @@
 package filter
 
 import (
-	"github.com/Shopify/sarama"
-	"io"
 	"encoding/csv"
 	"fmt"
+	"github.com/Shopify/sarama"
+	"io"
 	"strings"
 )
 
 var Producer sarama.AsyncProducer
-
 
 // CSVProcessor defines the CSVProcessor interface.
 type CSVProcessor interface {
@@ -24,9 +23,9 @@ func NewCSVProcessor() *Processor {
 	return &Processor{}
 }
 
-func getDimensionLocations(row []string) (map[string]int) {
-	result := make (map[string]int)
-	for i, j := 10, 0; i < len(row); i, j = i + 2, j + 1 {
+func getDimensionLocations(row []string) map[string]int {
+	result := make(map[string]int)
+	for i, j := 10, 0; i < len(row); i, j = i+2, j+1 {
 		dim := strings.TrimSpace(row[i])
 		result[dim] = i + 1 // value is next field after dim name
 	}
@@ -42,7 +41,7 @@ func (p *Processor) Process(r io.Reader, w io.Writer, dimensions map[string][]st
 	dimensionLocations := make(map[string]int)
 
 	lineCounter := 0
-	csvLoop:
+csvLoop:
 	for {
 		row, err := csvReader.Read()
 		if err != nil {
@@ -58,7 +57,7 @@ func (p *Processor) Process(r io.Reader, w io.Writer, dimensions map[string][]st
 		if lineCounter == 0 || len(dimensions) < 1 {
 			writeLine(csvWriter, row)
 		} else {
-			if(lineCounter == 1) {
+			if lineCounter == 1 {
 				dimensionLocations = getDimensionLocations(row)
 				fmt.Printf("%v", dimensionLocations)
 			}
@@ -77,7 +76,7 @@ func writeLine(csvWriter *csv.Writer, row []string) {
 	}
 }
 
-func allDimensionsMatch(row []string, dimensions map[string][]string, dimensionLocations map[string]int) (bool) {
+func allDimensionsMatch(row []string, dimensions map[string][]string, dimensionLocations map[string]int) bool {
 	for targetDim, targetValues := range dimensions {
 
 		dimLocation := dimensionLocations[targetDim]
@@ -90,7 +89,7 @@ func allDimensionsMatch(row []string, dimensions map[string][]string, dimensionL
 	return true
 }
 
-func singleDimensionMatches(actualValue string, targetValues []string)(bool) {
+func singleDimensionMatches(actualValue string, targetValues []string) bool {
 	for _, v := range targetValues {
 		//fmt.Println("Search for: " + targetValue)
 		//fmt.Println("Actual: " + actualValue)

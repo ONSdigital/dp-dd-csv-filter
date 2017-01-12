@@ -1,19 +1,19 @@
 package handlers
 
 import (
+	"bufio"
 	"encoding/json"
+	"errors"
 	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/filter"
+	"github.com/ONSdigital/go-ns/log"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"path/filepath"
-	"errors"
-	"github.com/ONSdigital/go-ns/log"
-	"github.com/ONSdigital/dp-dd-csv-filter/filter"
-	"bufio"
 	"os"
-	"time"
+	"path/filepath"
 	"strconv"
+	"time"
 )
 
 const csvFileExt = ".csv"
@@ -27,8 +27,8 @@ type FilterResponse struct {
 
 // FilterRequest struct defines a filter request
 type FilterRequest struct {
-	InputFilePath  string `json:"inputFilePath"`
-	OutputFilePath string `json:"outputFilePath"`
+	InputFilePath  string              `json:"inputFilePath"`
+	OutputFilePath string              `json:"outputFilePath"`
 	Dimensions     map[string][]string `json:"dimensions"`
 }
 

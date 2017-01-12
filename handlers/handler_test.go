@@ -59,7 +59,7 @@ func (mock *MockAWSCli) countOfSaveInvocations(uri string) int {
 }
 
 // MockCSVProcessor
-func (mock *MockAWSCli) SaveFile(reader io.Reader, filePath string) (error) {
+func (mock *MockAWSCli) SaveFile(reader io.Reader, filePath string) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -109,8 +109,8 @@ func TestHandler(t *testing.T) {
 
 		inputFile := "/test.csv"
 		outputFile := "/test.out"
-		dimensions := map[string][]string{"dim":[]string{"foo"}}
-		Handle(recorder, createRequest(FilterRequest{InputFilePath:inputFile, OutputFilePath:outputFile, Dimensions:dimensions}))
+		dimensions := map[string][]string{"dim": []string{"foo"}}
+		Handle(recorder, createRequest(FilterRequest{InputFilePath: inputFile, OutputFilePath: outputFile, Dimensions: dimensions}))
 
 		splitterResponse, status := extractResponseBody(recorder)
 

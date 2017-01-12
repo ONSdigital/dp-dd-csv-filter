@@ -47,7 +47,6 @@ func init() {
 		TopicName = topicNameEnv
 	}
 
-
 }
 
 func Load() {

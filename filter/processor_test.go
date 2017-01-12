@@ -1,12 +1,12 @@
 package filter_test
 
 import (
-	"testing"
-	. "github.com/smartystreets/goconvey/convey"
-	"github.com/ONSdigital/dp-dd-csv-filter/filter"
-	"os"
 	"bufio"
 	"fmt"
+	"github.com/ONSdigital/dp-dd-csv-filter/filter"
+	. "github.com/smartystreets/goconvey/convey"
+	"os"
+	"testing"
 )
 
 func TestProcessor(t *testing.T) {
@@ -27,23 +27,23 @@ func TestProcessor(t *testing.T) {
 		})
 
 		Convey("When the processor is called with a single dimension to filter \n", func() {
-			dimensions := map[string][]string{"NACE":{"08 - Other mining and quarrying"}}
+			dimensions := map[string][]string{"NACE": {"08 - Other mining and quarrying"}}
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 10, ShouldBeTrue)
 
 		})
 		Convey("When the processor is called with 2 dimensions to filter \n", func() {
 			dimensions := map[string][]string{
-				"NACE":{"08 - Other mining and quarrying"},
-				"Prodcom Elements":{"Work done"} }
+				"NACE":             {"08 - Other mining and quarrying"},
+				"Prodcom Elements": {"Work done"}}
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 2, ShouldBeTrue)
 
 		})
 		Convey("When the processor is called with 2 dimensions to filter and one of them has multiple acceptable values \n", func() {
 			dimensions := map[string][]string{
-				"NACE":{"08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"},
-				"Prodcom Elements":{"Work done", "Waste Products"} }
+				"NACE":             {"08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"},
+				"Prodcom Elements": {"Work done", "Waste Products"}}
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 5, ShouldBeTrue)
 
@@ -53,7 +53,7 @@ func TestProcessor(t *testing.T) {
 
 }
 
-func countLinesInFile(fileLocation string)(int) {
+func countLinesInFile(fileLocation string) int {
 	finalFile, err := os.Open(fileLocation)
 	if err != nil {
 		fmt.Println("Error reading output file", err.Error())
@@ -68,7 +68,7 @@ func countLinesInFile(fileLocation string)(int) {
 	return counter
 }
 
-func openFile(fileLocation string, errorMsg string)(*os.File) {
+func openFile(fileLocation string, errorMsg string) *os.File {
 	file, err := os.Open(fileLocation)
 	if err != nil {
 		fmt.Println(errorMsg, err.Error())
@@ -77,7 +77,7 @@ func openFile(fileLocation string, errorMsg string)(*os.File) {
 	return file
 }
 
-func createFileInBuildDir(fileName string, errorMsg string)(*os.File) {
+func createFileInBuildDir(fileName string, errorMsg string) *os.File {
 	if _, err := os.Stat("../build"); os.IsNotExist(err) {
 		os.Mkdir("../build", os.ModePerm)
 	}

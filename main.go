@@ -2,14 +2,14 @@ package main
 
 import (
 	"github.com/ONSdigital/dp-dd-csv-filter/config"
+	"github.com/ONSdigital/dp-dd-csv-filter/filter"
 	"github.com/ONSdigital/dp-dd-csv-filter/handlers"
 	"github.com/ONSdigital/go-ns/log"
+	"github.com/Shopify/sarama"
 	"github.com/gorilla/pat"
 	"net/http"
 	"os"
-	"github.com/Shopify/sarama"
 	"os/signal"
-	"github.com/ONSdigital/dp-dd-csv-filter/filter"
 )
 
 func main() {

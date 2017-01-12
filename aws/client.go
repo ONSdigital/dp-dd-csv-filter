@@ -7,15 +7,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"io"
 	"io/ioutil"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 // AWSClient interface defining the AWS client.
 type AWSService interface {
 	GetCSV(filePath string) (io.Reader, error)
-	SaveFile(reader io.Reader, filePath string) (error)
+	SaveFile(reader io.Reader, filePath string) error
 }
 
 // Client AWS client implementation.
@@ -66,7 +66,7 @@ func (cli *Service) GetCSV(filePath string) (io.Reader, error) {
 
 	log.Debug("Requesting .csv file from AWS S3 bucket", log.Data{
 		"S3BucketName": config.S3Bucket,
-		"filePath": filePath,
+		"filePath":     filePath,
 	})
 	result, err := s3Service.GetObject(request)
 
