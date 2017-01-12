@@ -19,12 +19,13 @@ var mutex = &sync.Mutex{}
 // MockAWSCli mock implementation of aws.Client
 type MockAWSCli struct {
 	requestedFiles map[string]int
+	savedFiles     map[string]int
 	fileBytes      []byte
 	err            error
 }
 
 func newMockAwsClient() *MockAWSCli {
-	mock := &MockAWSCli{requestedFiles: make(map[string]int)}
+	mock := &MockAWSCli{requestedFiles: make(map[string]int), savedFiles: make(map[string]int)}
 	setAWSClient(mock)
 	return mock
 }
@@ -49,26 +50,38 @@ func (mock *MockAWSCli) getTotalInvocations() int {
 	return count
 }
 
+func (mock *MockAWSCli) getInvocationsByURI(uri string) int {
+	return mock.requestedFiles[uri]
+}
+
+func (mock *MockAWSCli) countOfSaveInvocations(uri string) int {
+	return mock.savedFiles[uri]
+}
+
 // MockCSVProcessor
+func (mock *MockAWSCli) SaveFile(reader io.Reader, filePath string) (error) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	mock.savedFiles[filePath]++
+	return nil
+}
+
 type MockCSVProcessor struct {
 	invocations int
 }
 
+// Process mock implementation of the Process function.
 func newMockCSVProcessor() *MockCSVProcessor {
 	mock := &MockCSVProcessor{invocations: 0}
 	setCSVProcessor(mock)
 	return mock
 }
 
-// Process mock implementation of the Process function.
-func (p *MockCSVProcessor) Process(r io.Reader) {
+func (p *MockCSVProcessor) Process(r io.Reader, w io.Writer, d map[string][]string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	p.invocations++
-}
-
-func (mock *MockAWSCli) getInvocationsByURI(uri string) int {
-	return mock.requestedFiles[uri]
 }
 
 func mockReader(r io.Reader) ([]byte, error) {
@@ -94,15 +107,18 @@ func TestHandler(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		mockAWSCli, mockCSVProcessor := setMocks(ioutil.ReadAll)
 
-		fileLocation := "/test.csv"
-		Handle(recorder, createRequest(FilterRequest{fileLocation}))
+		inputFile := "/test.csv"
+		outputFile := "/test.out"
+		dimensions := map[string][]string{"dim":[]string{"foo"}}
+		Handle(recorder, createRequest(FilterRequest{InputFilePath:inputFile, OutputFilePath:outputFile, Dimensions:dimensions}))
 
 		splitterResponse, status := extractResponseBody(recorder)
 
 		So(splitterResponse, ShouldResemble, filterResponseSuccess)
 		So(status, ShouldResemble, http.StatusOK)
 		So(1, ShouldEqual, mockAWSCli.getTotalInvocations())
-		So(1, ShouldEqual, mockAWSCli.getInvocationsByURI(fileLocation))
+		So(1, ShouldEqual, mockAWSCli.getInvocationsByURI(inputFile))
+		So(1, ShouldEqual, mockAWSCli.countOfSaveInvocations(outputFile))
 		So(1, ShouldEqual, mockCSVProcessor.invocations)
 	})
 
