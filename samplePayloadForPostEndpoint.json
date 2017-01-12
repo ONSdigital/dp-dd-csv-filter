@@ -1,6 +1,6 @@
 {
-  "inputFilePath": "Open-Data-for-filter.csv",
-  "outputFilePath": "Open-Data-filtered.csv",
+  "inputUrl": "Open-Data-for-filter.csv",
+  "outputUrl": "Open-Data-filtered.csv",
   "dimensions": {
     "NACE": [
       "08 - Other mining and quarrying",

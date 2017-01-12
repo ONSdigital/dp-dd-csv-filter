@@ -3,12 +3,9 @@ package filter
 import (
 	"encoding/csv"
 	"fmt"
-	"github.com/Shopify/sarama"
 	"io"
 	"strings"
 )
-
-var Producer sarama.AsyncProducer
 
 // CSVProcessor defines the CSVProcessor interface.
 type CSVProcessor interface {

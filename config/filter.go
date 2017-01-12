@@ -7,12 +7,13 @@ import (
 
 const bindAddrKey = "BIND_ADDR"
 const kafkaAddrKey = "KAFKA_ADDR"
+const kafkaConsumerGroup = "KAFKA_CONSUMER_GROUP"
+const kafkaConsumerTopic = "KAFKA_CONSUMER_TOPIC"
 const s3BucketKey = "S3_BUCKET"
 const awsRegionKey = "AWS_REGION"
-const topicNameKey = "TOPIC_NAME"
 
 // BindAddr the address to bind to.
-var BindAddr = ":21000"
+var BindAddr = ":21100"
 
 // KafkaAddr the Kafka address to send messages to.
 var KafkaAddr = "localhost:9092"
@@ -23,8 +24,11 @@ var S3Bucket = "dp-csv-splitter-1"
 // AWSRegion the AWS region to use.
 var AWSRegion = "eu-west-1"
 
-// TopicName the name of the Kafka topic to send messages to.
-var TopicName = "test"
+// KafkaConsumerGroup the consumer group to consume messages from.
+var KafkaConsumerGroup = "filter-request"
+
+// KafkaConsumerTopic the name of the topic to consume messages from.
+var KafkaConsumerTopic = "filter-request"
 
 func init() {
 	if bindAddrEnv := os.Getenv(bindAddrKey); len(bindAddrEnv) > 0 {
@@ -43,8 +47,12 @@ func init() {
 		AWSRegion = awsRegionEnv
 	}
 
-	if topicNameEnv := os.Getenv(topicNameKey); len(topicNameEnv) > 0 {
-		TopicName = topicNameEnv
+	if consumerGroupEnv := os.Getenv(kafkaConsumerGroup); len(consumerGroupEnv) > 0 {
+		KafkaConsumerGroup = consumerGroupEnv
+	}
+
+	if consumerTopicEnv := os.Getenv(kafkaConsumerTopic); len(consumerTopicEnv) > 0 {
+		KafkaConsumerTopic = consumerTopicEnv
 	}
 
 }
@@ -56,6 +64,7 @@ func Load() {
 		kafkaAddrKey: KafkaAddr,
 		s3BucketKey:  S3Bucket,
 		awsRegionKey: AWSRegion,
-		topicNameKey: TopicName,
+		kafkaConsumerGroup: KafkaConsumerGroup,
+		kafkaConsumerTopic: kafkaConsumerTopic,
 	})
 }

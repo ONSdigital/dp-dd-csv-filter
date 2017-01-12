@@ -34,11 +34,7 @@ func (mock *MockAWSCli) GetCSV(fileURI string) (io.Reader, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if val, ok := mock.requestedFiles[fileURI]; ok {
-		mock.requestedFiles[fileURI] = val + 1
-	} else {
-		mock.requestedFiles[fileURI] = 1
-	}
+	mock.requestedFiles[fileURI]++
 	return bytes.NewReader(mock.fileBytes), mock.err
 }
 
@@ -58,7 +54,6 @@ func (mock *MockAWSCli) countOfSaveInvocations(uri string) int {
 	return mock.savedFiles[uri]
 }
 
-// MockCSVProcessor
 func (mock *MockAWSCli) SaveFile(reader io.Reader, filePath string) error {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -67,25 +62,22 @@ func (mock *MockAWSCli) SaveFile(reader io.Reader, filePath string) error {
 	return nil
 }
 
+// MockCSVProcessor
 type MockCSVProcessor struct {
 	invocations int
 }
 
-// Process mock implementation of the Process function.
 func newMockCSVProcessor() *MockCSVProcessor {
 	mock := &MockCSVProcessor{invocations: 0}
 	setCSVProcessor(mock)
 	return mock
 }
 
+// Process mock implementation of the Process function.
 func (p *MockCSVProcessor) Process(r io.Reader, w io.Writer, d map[string][]string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	p.invocations++
-}
-
-func mockReader(r io.Reader) ([]byte, error) {
-	return []byte{}, errors.New("BOB")
 }
 
 func TestHandler(t *testing.T) {
@@ -109,7 +101,7 @@ func TestHandler(t *testing.T) {
 
 		inputFile := "/test.csv"
 		outputFile := "/test.out"
-		dimensions := map[string][]string{"dim": []string{"foo"}}
+		dimensions := map[string][]string{"dim": {"foo"}}
 		Handle(recorder, createRequest(FilterRequest{InputFilePath: inputFile, OutputFilePath: outputFile, Dimensions: dimensions}))
 
 		splitterResponse, status := extractResponseBody(recorder)

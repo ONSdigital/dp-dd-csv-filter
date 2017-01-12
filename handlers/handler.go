@@ -27,10 +27,13 @@ type FilterResponse struct {
 
 // FilterRequest struct defines a filter request
 type FilterRequest struct {
-	InputFilePath  string              `json:"inputFilePath"`
-	OutputFilePath string              `json:"outputFilePath"`
+	InputFilePath  string              `json:"inputUrl"`
+	OutputFilePath string              `json:"outputUrl"`
 	Dimensions     map[string][]string `json:"dimensions"`
 }
+
+// FilterFunc defines a function (implemented by HandleRequest) that performs the filtering requested in a FilterRequest
+type FilterFunc func(FilterRequest) FilterResponse
 
 var unsupportedFileTypeErr = errors.New("Unspported file type.")
 var awsClientErr = errors.New("Error while attempting get to get from from AWS s3 bucket.")
@@ -72,6 +75,7 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 	WriteResponse(w, response, status)
 }
 
+// Performs the filtering as specified in the FilterRequest, returning a FilterResponse
 func HandleRequest(filterRequest FilterRequest) FilterResponse {
 	if len(filterRequest.InputFilePath) == 0 {
 		log.Error(filePathParamMissingErr, nil)
@@ -104,6 +108,8 @@ func HandleRequest(filterRequest FilterRequest) FilterResponse {
 	}
 
 	awsService.SaveFile(bufio.NewReader(tmpFile), filterRequest.OutputFilePath)
+
+	os.Remove(outputFileLocation)
 
 	return filterResponseSuccess
 }
