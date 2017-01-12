@@ -44,7 +44,7 @@ make debug
 The following curl command will instruct the application attempt to get the specified file from the AWS bucket,
 filter it and write the output back to the output file in the bucket
 ```
-curl -H "Content-Type: application/json" -X POST -d '{ "inputUrl": "Open-Data-for-filter.csv", "outputUrl": "Open-Data-filtered.csv", "dimensions": { "NACE": [ "08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"], "Prodcom Elements": [ "Work done", "Waste Products"] } }' http://localhost:21000/filter
+curl -H "Content-Type: application/json" -X POST -d '{ "inputUrl": "Open-Data-for-filter.csv", "outputUrl": "Open-Data-filtered.csv", "dimensions": { "NACE": [ "08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"], "Prodcom Elements": [ "Work done", "Waste Products"] } }' http://localhost:21100/filter
 ```
 
 The project includes a small data set in the `sample_csv` directory for test usage.
@@ -53,7 +53,7 @@ The project includes a small data set in the `sample_csv` directory for test usa
 
 | Environment variable | Default                 | Description
 | -------------------- | ----------------------- | ----------------------------------------------------
-| BIND_ADDR            | ":21000"                | The host and port to bind to.
+| BIND_ADDR            | ":21100"                | The host and port to bind to.
 | KAFKA_ADDR           | "http://localhost:9092" | The Kafka address to request messages from.
 | S3_BUCKET            | "dp-csv-splitter-1"     | The name of AWS S3 bucket to get the csv files from.
 | AWS_REGION           | "eu-west-1"             | The AWS region to use.
