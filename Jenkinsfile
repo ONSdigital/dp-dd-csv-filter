@@ -40,6 +40,8 @@ node {
             sh "aws s3 cp dp-dd-csv-filter-${revision}.tar.gz s3://${env.S3_REVISIONS_BUCKET}/"
         }
 
+        if (env.JOB_NAME.replaceFirst('.+/', '') != 'develop') return
+
         stage('Deploy') {
             sh sprintf('aws deploy create-deployment %s %s %s,bundleType=tgz,key=%s', [
                 '--application-name dp-dd-csv-filter',
