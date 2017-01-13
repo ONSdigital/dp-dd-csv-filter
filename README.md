@@ -28,23 +28,23 @@ brew services start zookeeper
 
 Run the Kafka console consumer
 ```
-kafka-console-consumer --zookeeper $ZOOKEEPER --topic test
+kafka-console-consumer --zookeeper $ZOOKEEPER --topic filter-request
 ```
 
-Run the Kafka console consumer
+Run the Kafka console producer
 ```
-kafka-console-producer --broker-list $KAFKA --topic test
+kafka-console-producer --broker-list $KAFKA --topic filter-request
 ```
 
-Run the the splitter
+Run the filter
 ```
 make debug
 ```
 
-The following curl command will instruct the application attempt to get the specified file from the AWS bucket
-(see Configuration) split it into rows & send each as kafka message.
+The following curl command will instruct the application attempt to get the specified file from the AWS bucket,
+filter it and write the output back to the output file in the bucket
 ```
-curl -H "Content-Type: application/json" -X POST -d '{"filePath": "$PATH_TO_FILE$"}' http://localhost:21000/splitter
+curl -H "Content-Type: application/json" -X POST -d '{ "inputUrl": "Open-Data-for-filter.csv", "outputUrl": "Open-Data-filtered.csv", "dimensions": { "NACE": [ "08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"], "Prodcom Elements": [ "Work done", "Waste Products"] } }' http://localhost:21100/filter
 ```
 
 The project includes a small data set in the `sample_csv` directory for test usage.
@@ -53,11 +53,12 @@ The project includes a small data set in the `sample_csv` directory for test usa
 
 | Environment variable | Default                 | Description
 | -------------------- | ----------------------- | ----------------------------------------------------
-| BIND_ADDR            | ":21000"                | The host and port to bind to.
-| KAFKA_ADDR           | "http://localhost:9092" | The Kafka address to send messages to.
+| BIND_ADDR            | ":21100"                | The host and port to bind to.
+| KAFKA_ADDR           | "http://localhost:9092" | The Kafka address to request messages from.
 | S3_BUCKET            | "dp-csv-splitter-1"     | The name of AWS S3 bucket to get the csv files from.
 | AWS_REGION           | "eu-west-1"             | The AWS region to use.
-| TOPIC_NAME           | "test"                  | The name of the Kafka topic to send the messages to.
+| KAFKA_CONSUMER_GROUP | "filter-request"        | The name of the Kafka group to read messages from.
+| KAFKA_CONSUMER_TOPIC | "filter-request"        | The name of the Kafka topic to read messages from.
 
 ### Contributing
 
