@@ -16,7 +16,6 @@ source $CONFIG && docker run -d                    \
   --env=KAFKA_ADDR=$KAFKA_ADDR                     \
   --env=KAFKA_CONSUMER_GROUP=$KAFKA_CONSUMER_GROUP \
   --env=KAFKA_CONSUMER_TOPIC=$KAFKA_CONSUMER_TOPIC \
-  --env=S3_BUCKET=$S3_BUCKET                       \
   --name=dp-dd-csv-filter                          \
   --net=$DOCKER_NETWORK                            \
   --restart=always                                 \

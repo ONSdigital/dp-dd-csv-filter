@@ -44,7 +44,11 @@ make debug
 The following curl command will instruct the application attempt to get the specified file from the AWS bucket,
 filter it and write the output back to the output file in the bucket
 ```
-curl -H "Content-Type: application/json" -X POST -d '{ "inputUrl": "Open-Data-for-filter.csv", "outputUrl": "Open-Data-filtered.csv", "dimensions": { "NACE": [ "08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"], "Prodcom Elements": [ "Work done", "Waste Products"] } }' http://localhost:21100/filter
+curl -H "Content-Type: application/json" -X POST -d '{ "inputUrl": "s3://dp-csv-splitter-1/Open-Data-for-filter.csv", "outputUrl": "s3://dp-csv-splitter-1/Open-Data-filtered.csv", "dimensions": { "NACE": [ "08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"], "Prodcom Elements": [ "Work done", "Waste Products"] } }' http://localhost:21100/filter
+```
+Or paste the following line into the kafka console producer mentioned above:
+```
+{ "inputUrl": "s3://dp-csv-splitter-1/Open-Data-for-filter.csv", "outputUrl": "s3://dp-csv-splitter-1/Open-Data-filtered.csv", "dimensions": { "NACE": [ "08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"], "Prodcom Elements": [ "Work done", "Waste Products"] } }
 ```
 
 The project includes a small data set in the `sample_csv` directory for test usage.

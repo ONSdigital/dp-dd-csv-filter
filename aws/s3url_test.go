@@ -12,7 +12,7 @@ func TestUnmarshal(t *testing.T) {
 
 	Convey("Given json representing a valid s3url is unmarshaled", t, func() {
 
-		var s3url S3URLType
+		var s3url S3URL
 		json.Unmarshal([]byte(input), &s3url)
 
 		Convey("Then the s3url should have correct bucket and filename", func() {
@@ -28,7 +28,7 @@ func TestUnmarshalInvalid(t *testing.T) {
 
 	Convey("Given json representing an invalid s3url is unmarshaled", t, func() {
 
-		var s3url S3URLType
+		var s3url S3URL
 		err := json.Unmarshal([]byte(input), &s3url)
 
 		Convey("Then the s3url should be NilS3URL", func() {
@@ -38,6 +38,20 @@ func TestUnmarshalInvalid(t *testing.T) {
 			So(err, ShouldNotEqual, nil)
 		})
 
+	})
+}
+
+func TestS3URLCanBeMarshaledAndUnmarshaled(t *testing.T) {
+	var original, _ = NewS3URL("s3://bucket/file")
+
+	Convey("Given a url marshaled to json", t, func() {
+		var marshaled, _ = json.Marshal(original)
+		Convey("Then the unmarshaled object should resemble the original", func() {
+			var unmarshaled S3URL
+			err := json.Unmarshal(marshaled, &unmarshaled)
+			So(err, ShouldEqual, nil)
+			So(unmarshaled, ShouldResemble, original)
+		})
 	})
 }
 

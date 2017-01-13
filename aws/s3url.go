@@ -2,33 +2,38 @@ package aws
 
 import (
 	"fmt"
-	"github.com/ONSdigital/go-ns/log"
 	"net/url"
 	"strings"
 )
 
-type S3URLType struct {
+type S3URL struct {
 	URL *url.URL
 }
 
-var NilS3URL = S3URLType{nil}
+var NilS3URL = S3URL{nil}
 
-func NewS3URL(s string) (S3URLType, error) {
+func NewS3URL(s string) (S3URL, error) {
 	s3, err := parseUrl(s)
 	if err != nil {
 		return NilS3URL, err
 	}
-	return S3URLType{s3}, nil
+	return S3URL{s3}, nil
 }
 
-func (x *S3URLType) UnmarshalJSON(b []byte) (err error) {
+func (s *S3URL) UnmarshalJSON(b []byte) (err error) {
 	url, err := parseUrl(strings.Trim(string(b), "\"'"))
 	if err != nil {
-		log.Error(err, log.Data{"Details": "Failed to unmarshal value to S3URLType"})
 		return err
 	}
-	x.URL = url
+	s.URL = url
 	return nil
+}
+
+func (s S3URL) MarshalJSON() ([]byte, error) {
+	if s.URL == nil {
+		return []byte("null"), nil
+	}
+	return []byte("\"" + s.URL.String() + "\""), nil
 }
 
 func parseUrl(s string) (*url.URL, error) {
@@ -38,18 +43,23 @@ func parseUrl(s string) (*url.URL, error) {
 		return nil, err
 	}
 	if (len(u.Host)) < 1 {
-		return nil, fmt.Errorf("URL %v does not contain a Bucket", u)
+		return nil, fmt.Errorf("URL '%s' does not contain a Bucket", s)
 	}
 	if (len(strings.TrimLeft(u.Path, "/"))) < 1 {
-		return nil, fmt.Errorf("URL %v does not contain a FilePath", u)
+		return nil, fmt.Errorf("URL '%s' does not contain a FilePath", s)
 	}
 	return u, nil
 }
 
-func (s *S3URLType) GetBucketName() string {
+func (s *S3URL) GetBucketName() string {
 	return s.URL.Host
 }
 
-func (s *S3URLType) GetFilePath() string {
+func (s *S3URL) GetFilePath() string {
 	return strings.TrimPrefix(s.URL.Path, "/")
+}
+
+func (s *S3URL) String() string {
+	var u url.URL = *s.URL
+	return u.String()
 }

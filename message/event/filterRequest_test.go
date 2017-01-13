@@ -1,6 +1,7 @@
 package event
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -49,6 +50,20 @@ func TestNewValidatesOutputURL(t *testing.T) {
 		Convey("Then returned request is nil and err is not", func() {
 			So(err, ShouldNotEqual, nil)
 			So(filterRequest, ShouldResemble, NilRequest)
+		})
+	})
+}
+
+func TestFilterRequestCanBeMarshaledAndUnmarshaled(t *testing.T) {
+	var filterRequest, _ = NewFilterRequest(inputUrl, outputUrl, map[string][]string{})
+
+	Convey("Given a filterRequest marshaled to json", t, func() {
+		var marshaled, _ = json.Marshal(filterRequest)
+		Convey("Then the unmarshaled object should resemble the original", func() {
+			var unmarshaled FilterRequest
+			err := json.Unmarshal(marshaled, &unmarshaled)
+			So(err, ShouldEqual, nil)
+			So(unmarshaled, ShouldResemble, filterRequest)
 		})
 	})
 }
