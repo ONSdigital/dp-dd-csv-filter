@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/ONSdigital/dp-dd-csv-filter/handlers"
 	"github.com/ONSdigital/dp-dd-csv-filter/message"
+	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/Shopify/sarama"
 	"github.com/Shopify/sarama/mocks"
 	. "github.com/smartystreets/goconvey/convey"
@@ -13,16 +14,16 @@ import (
 
 var messagesProcessed = 0
 
-func mockFilterFunc(filterRequest handlers.FilterRequest) handlers.FilterResponse {
+func mockFilterFunc(filterRequest event.FilterRequest) handlers.FilterResponse {
 	messagesProcessed++
 	return handlers.FilterResponse{Message: "done"}
 }
 
 func TestProcessor(t *testing.T) {
-	event := handlers.FilterRequest{
-		InputFilePath:  "inputUrl",
-		OutputFilePath: "outputUrl",
-		Dimensions: map[string][]string{
+	event, _ := event.NewFilterRequest(
+		"s3://bucket/file",
+		"s3://bucket/file",
+		map[string][]string{
 			"NACE": {
 				"08 - Other mining and quarrying",
 				"1012 - Processing and preserving of poultry meat",
@@ -32,7 +33,7 @@ func TestProcessor(t *testing.T) {
 				"Waste Products",
 			},
 		},
-	}
+	)
 
 	messageJson, _ := json.Marshal(event)
 	topicName := "filter-request"

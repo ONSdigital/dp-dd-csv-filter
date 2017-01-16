@@ -1,6 +1,6 @@
 {
-  "inputUrl": "Open-Data-for-filter.csv",
-  "outputUrl": "Open-Data-filtered.csv",
+  "inputUrl": "s3://dp-csv-splitter-1/Open-Data-for-filter.csv",
+  "outputUrl": "s3://dp-csv-splitter-1/Open-Data-filtered.csv",
   "dimensions": {
     "NACE": [
       "08 - Other mining and quarrying",

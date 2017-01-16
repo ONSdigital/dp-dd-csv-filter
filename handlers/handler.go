@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/ONSdigital/dp-dd-csv-filter/aws"
 	"github.com/ONSdigital/dp-dd-csv-filter/filter"
+	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/ONSdigital/go-ns/log"
 	"io"
 	"io/ioutil"
@@ -25,19 +26,11 @@ type FilterResponse struct {
 	Message string `json:"message,omitempty"`
 }
 
-// FilterRequest struct defines a filter request
-type FilterRequest struct {
-	InputFilePath  string              `json:"inputUrl"`
-	OutputFilePath string              `json:"outputUrl"`
-	Dimensions     map[string][]string `json:"dimensions"`
-}
-
 // FilterFunc defines a function (implemented by HandleRequest) that performs the filtering requested in a FilterRequest
-type FilterFunc func(FilterRequest) FilterResponse
+type FilterFunc func(event.FilterRequest) FilterResponse
 
 var unsupportedFileTypeErr = errors.New("Unspported file type.")
 var awsClientErr = errors.New("Error while attempting get to get from from AWS s3 bucket.")
-var filePathParamMissingErr = errors.New("No filePath value was provided.")
 var awsService = aws.NewService()
 var csvProcessor filter.CSVProcessor = filter.NewCSVProcessor()
 var readFilterRequestBody requestBodyReader = ioutil.ReadAll
@@ -45,7 +38,6 @@ var readFilterRequestBody requestBodyReader = ioutil.ReadAll
 // Responses
 var filterRespReadReqBodyErr = FilterResponse{"Error when attempting to read request body."}
 var filterRespUnmarshalBody = FilterResponse{"Error when attempting to unmarshal request body."}
-var filterRespFilePathMissing = FilterResponse{"No filePath parameter was specified in the request body."}
 var filterRespUnsupportedFileType = FilterResponse{"Unspported file type. Please specify a filePath for a .csv file."}
 var filterResponseSuccess = FilterResponse{"Your request is being processed."}
 
@@ -60,7 +52,7 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var filterRequest FilterRequest
+	var filterRequest event.FilterRequest
 	if err := json.Unmarshal(bytes, &filterRequest); err != nil {
 		log.Error(err, nil)
 		WriteResponse(w, filterRespUnmarshalBody, http.StatusBadRequest)
@@ -76,18 +68,14 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 }
 
 // Performs the filtering as specified in the FilterRequest, returning a FilterResponse
-func HandleRequest(filterRequest FilterRequest) FilterResponse {
-	if len(filterRequest.InputFilePath) == 0 {
-		log.Error(filePathParamMissingErr, nil)
-		return filterRespFilePathMissing
-	}
+func HandleRequest(filterRequest event.FilterRequest) FilterResponse {
 
-	if fileType := filepath.Ext(filterRequest.InputFilePath); fileType != csvFileExt {
+	if fileType := filepath.Ext(filterRequest.InputURL.GetFilePath()); fileType != csvFileExt {
 		log.Error(unsupportedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
 		return filterRespUnsupportedFileType
 	}
 
-	awsReader, err := awsService.GetCSV(filterRequest.InputFilePath)
+	awsReader, err := awsService.GetCSV(filterRequest.InputURL)
 	if err != nil {
 		log.Error(awsClientErr, log.Data{"details": err.Error()})
 		return FilterResponse{err.Error()}
@@ -107,7 +95,7 @@ func HandleRequest(filterRequest FilterRequest) FilterResponse {
 		log.Error(err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
 	}
 
-	awsService.SaveFile(bufio.NewReader(tmpFile), filterRequest.OutputFilePath)
+	awsService.SaveFile(bufio.NewReader(tmpFile), filterRequest.OutputURL)
 
 	os.Remove(outputFileLocation)
 

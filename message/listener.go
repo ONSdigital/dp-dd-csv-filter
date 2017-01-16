@@ -5,6 +5,7 @@ import (
 
 	"fmt"
 	"github.com/ONSdigital/dp-dd-csv-filter/handlers"
+	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/Shopify/sarama"
 )
@@ -18,7 +19,7 @@ func ConsumerLoop(listener Listener, filterer handlers.FilterFunc) {
 
 func processMessage(message *sarama.ConsumerMessage, filterer handlers.FilterFunc) error {
 
-	var filterRequest handlers.FilterRequest
+	var filterRequest event.FilterRequest
 	if err := json.Unmarshal(message.Value, &filterRequest); err != nil {
 		log.Error(err, nil)
 		return err
