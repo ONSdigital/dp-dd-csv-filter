@@ -22,7 +22,7 @@ func NewCSVProcessor() *Processor {
 
 func getDimensionLocations(row []string) map[string]int {
 	result := make(map[string]int)
-	for i, j := 10, 0; i < len(row); i, j = i+2, j+1 {
+	for i, j := 11, 0; i < len(row); i, j = i+2, j+1 {
 		dim := strings.TrimSpace(row[i])
 		result[dim] = i + 1 // value is next field after dim name
 	}
