@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"fmt"
+
 	"github.com/ONSdigital/dp-dd-csv-filter/handlers"
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/ONSdigital/go-ns/log"

@@ -3,15 +3,16 @@ package filter_test
 import (
 	"bufio"
 	"fmt"
-	"github.com/ONSdigital/dp-dd-csv-filter/filter"
-	. "github.com/smartystreets/goconvey/convey"
 	"os"
 	"testing"
+
+	"github.com/ONSdigital/dp-dd-csv-filter/filter"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestProcessor(t *testing.T) {
 
-	inputFileLocation := "../sample_csv/Open-Data-for-filter.csv"
+	inputFileLocation := "../sample_csv/Open-Data-v3.csv"
 
 	Convey("Given a processor pointing to a local csv file", t, func() {
 
@@ -27,23 +28,23 @@ func TestProcessor(t *testing.T) {
 		})
 
 		Convey("When the processor is called with a single dimension to filter \n", func() {
-			dimensions := map[string][]string{"NACE": {"08 - Other mining and quarrying"}}
+			dimensions := map[string][]string{"NACE": {"CI_0000072"}} // 08 - Other mining and quarrying
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 10, ShouldBeTrue)
 
 		})
 		Convey("When the processor is called with 2 dimensions to filter \n", func() {
 			dimensions := map[string][]string{
-				"NACE":             {"08 - Other mining and quarrying"},
-				"Prodcom Elements": {"Work done"}}
+				"NACE":             {"CI_0000072"}, // 08 - Other mining and quarrying
+				"Prodcom Elements": {"CI_0021513"}} // Work done
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 2, ShouldBeTrue)
 
 		})
 		Convey("When the processor is called with 2 dimensions to filter and one of them has multiple acceptable values \n", func() {
 			dimensions := map[string][]string{
-				"NACE":             {"08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"},
-				"Prodcom Elements": {"Work done", "Waste Products"}}
+				"NACE":             {"CI_0000072", "CI_0008197"}, // "08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"
+				"Prodcom Elements": {"CI_0021513", "CI_0021514"}} // "Work done", "Waste Products"
 			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 5, ShouldBeTrue)
 

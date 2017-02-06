@@ -2,14 +2,15 @@ package aws
 
 import (
 	"bytes"
+	"io"
+	"io/ioutil"
+
 	"github.com/ONSdigital/dp-dd-csv-filter/config"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"io"
-	"io/ioutil"
 )
 
 // AWSClient interface defining the AWS client.

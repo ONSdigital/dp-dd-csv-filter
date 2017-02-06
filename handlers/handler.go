@@ -4,10 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"github.com/ONSdigital/dp-dd-csv-filter/aws"
-	"github.com/ONSdigital/dp-dd-csv-filter/filter"
-	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
-	"github.com/ONSdigital/go-ns/log"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +11,11 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/filter"
+	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
+	"github.com/ONSdigital/go-ns/log"
 )
 
 const csvFileExt = ".csv"

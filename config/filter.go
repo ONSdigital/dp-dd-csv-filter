@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/ONSdigital/go-ns/log"
 	"os"
+
+	"github.com/ONSdigital/go-ns/log"
 )
 
 const bindAddrKey = "BIND_ADDR"

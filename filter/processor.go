@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+const (
+	DIMENSION_START_INDEX = 3
+)
+
 // CSVProcessor defines the CSVProcessor interface.
 type CSVProcessor interface {
 	Process(r io.Reader, w io.Writer, dimensions map[string][]string)
@@ -22,9 +26,9 @@ func NewCSVProcessor() *Processor {
 
 func getDimensionLocations(row []string) map[string]int {
 	result := make(map[string]int)
-	for i, j := 11, 0; i < len(row); i, j = i+2, j+1 {
-		dim := strings.TrimSpace(row[i])
-		result[dim] = i + 1 // value is next field after dim name
+	for i := DIMENSION_START_INDEX; i < len(row); i = i + 3 {
+		dim := strings.TrimSpace(row[i+1])
+		result[dim] = i + 2 // value is next field after dim name
 	}
 
 	return result
@@ -46,7 +50,7 @@ csvLoop:
 				fmt.Println("EOF reached, no more records to process", err.Error())
 				break csvLoop
 			} else {
-				fmt.Println("Error occored and cannot process anymore entry", err.Error())
+				fmt.Println("Error occurred and cannot process anymore entry", err.Error())
 				panic(err)
 			}
 		}

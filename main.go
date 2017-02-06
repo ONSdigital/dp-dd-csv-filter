@@ -1,15 +1,16 @@
 package main
 
 import (
+	"net/http"
+	"os"
+	"os/signal"
+
 	"github.com/ONSdigital/dp-dd-csv-filter/config"
 	"github.com/ONSdigital/dp-dd-csv-filter/handlers"
 	"github.com/ONSdigital/dp-dd-csv-filter/message"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/bsm/sarama-cluster"
 	"github.com/gorilla/pat"
-	"net/http"
-	"os"
-	"os/signal"
 )
 
 func main() {
