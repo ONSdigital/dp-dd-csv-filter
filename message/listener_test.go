@@ -2,14 +2,15 @@ package message_test
 
 import (
 	"encoding/json"
+	"testing"
+	"time"
+
 	"github.com/ONSdigital/dp-dd-csv-filter/handlers"
 	"github.com/ONSdigital/dp-dd-csv-filter/message"
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/Shopify/sarama"
 	"github.com/Shopify/sarama/mocks"
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-	"time"
 )
 
 var messagesProcessed = 0

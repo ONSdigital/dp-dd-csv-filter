@@ -4,10 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"github.com/ONSdigital/dp-dd-csv-filter/aws"
-	"github.com/ONSdigital/dp-dd-csv-filter/filter"
-	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
-	"github.com/ONSdigital/go-ns/log"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +11,13 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/filter"
+	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
+	"github.com/ONSdigital/go-ns/log"
+	"fmt"
+	"runtime/debug"
 )
 
 const csvFileExt = ".csv"
@@ -68,7 +71,7 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 }
 
 // Performs the filtering as specified in the FilterRequest, returning a FilterResponse
-func HandleRequest(filterRequest event.FilterRequest) FilterResponse {
+func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 
 	if fileType := filepath.Ext(filterRequest.InputURL.GetFilePath()); fileType != csvFileExt {
 		log.Error(unsupportedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
@@ -87,6 +90,14 @@ func HandleRequest(filterRequest event.FilterRequest) FilterResponse {
 		log.Error(err, log.Data{"message": "Error creating temp output file in location " + outputFileLocation})
 		panic(err)
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("Something went wrong: %s\n%s", r, debug.Stack())
+			message := fmt.Sprintf("%s", r)
+			resp = FilterResponse{message}
+		}
+	}()
 
 	csvProcessor.Process(awsReader, bufio.NewWriter(outputFile), filterRequest.Dimensions)
 

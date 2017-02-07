@@ -18,6 +18,8 @@ import (
 
 var mutex = &sync.Mutex{}
 
+const PANIC_MESSAGE = "Panic!!!"
+
 // MockAWSCli mock implementation of aws.Client
 type MockAWSCli struct {
 	requestedFiles map[string]int
@@ -67,6 +69,7 @@ func (mock *MockAWSCli) countOfSaveInvocations(uri string) int {
 // MockCSVProcessor
 type MockCSVProcessor struct {
 	invocations int
+	shouldPanic bool
 }
 
 func newMockCSVProcessor() *MockCSVProcessor {
@@ -80,6 +83,9 @@ func (p *MockCSVProcessor) Process(r io.Reader, w io.Writer, d map[string][]stri
 	mutex.Lock()
 	defer mutex.Unlock()
 	p.invocations++
+	if (p.shouldPanic) {
+		panic(PANIC_MESSAGE)
+	}
 }
 
 func TestHandler(t *testing.T) {
@@ -167,6 +173,31 @@ func TestHandler(t *testing.T) {
 		So(splitterResponse, ShouldResemble, filterRespUnsupportedFileType)
 		So(status, ShouldResemble, http.StatusBadRequest)
 	})
+
+
+	Convey("Should handle a panic.", t, func() {
+		recorder := httptest.NewRecorder()
+		mockAWSCli, mockCSVProcessor := setMocks(ioutil.ReadAll)
+
+		inputFile := "s3://bucket/test.csv"
+		outputFile := "s3://bucket/test.out"
+		dimensions := map[string][]string{"dim": {"foo"}}
+		filterRequest := createFilterRequest(inputFile, outputFile, dimensions)
+
+		mockCSVProcessor.shouldPanic = true
+
+		Handle(recorder, createRequest(filterRequest))
+
+		splitterResponse, status := extractResponseBody(recorder)
+
+		So(splitterResponse, ShouldResemble, FilterResponse{PANIC_MESSAGE})
+		So(status, ShouldResemble, http.StatusBadRequest)
+		So(1, ShouldEqual, mockAWSCli.getTotalInvocations())
+		So(1, ShouldEqual, mockAWSCli.getInvocationsByURI(inputFile))
+		So(0, ShouldEqual, mockAWSCli.countOfSaveInvocations(outputFile))
+		So(1, ShouldEqual, mockCSVProcessor.invocations)
+	})
+
 }
 
 func extractResponseBody(rec *httptest.ResponseRecorder) (FilterResponse, int) {

@@ -48,7 +48,7 @@ curl -H "Content-Type: application/json" -X POST -d '{ "inputUrl": "s3://dp-csv-
 ```
 Or paste the following line into the kafka console producer mentioned above:
 ```
-{ "inputUrl": "s3://dp-csv-splitter-1/Open-Data-for-filter.csv", "outputUrl": "s3://dp-csv-splitter-1/Open-Data-filtered.csv", "dimensions": { "NACE": [ "08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"], "Prodcom Elements": [ "Work done", "Waste Products"] } }
+{ "inputUrl": "s3://dp-csv-splitter/Open-Data-v3.csv", "outputUrl": "s3://dp-dd-csv-filter/Open-Data-v3.csv", "dimensions": { "NACE": [ "CI_0000072", "CI_0008197"], "Prodcom Elements": [ "CI_0021513", "CI_0021514"] } }
 ```
 
 The project includes a small data set in the `sample_csv` directory for test usage.
