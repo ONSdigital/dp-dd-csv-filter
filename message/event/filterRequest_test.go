@@ -72,8 +72,7 @@ func TestString(t *testing.T) {
 
 	Convey("Given a filterRequest", t, func() {
 		Convey("Then the String() should resemble the original", func() {
-			s := filterRequest.String()
-			So(s, ShouldEqual, `FilterRequest{InputURL:"s3://input-bucket-name/input_folder/filter.csv", OutputURL: "s3://output-bucket-name/output_folder/filter.csv", Dimensions: map[Foo:[bar]]}`)
+			So(filterRequest.String(), ShouldEqual, `FilterRequest{InputURL:"s3://input-bucket-name/input_folder/filter.csv", OutputURL: "s3://output-bucket-name/output_folder/filter.csv", Dimensions: map[Foo:[bar]]}`)
 		})
 	})
 }

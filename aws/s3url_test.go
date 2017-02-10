@@ -60,8 +60,7 @@ func TestString(t *testing.T) {
 
 	Convey("String should include the s3 url", t, func() {
 		Convey("Then the string should resemble the original", func() {
-			s := original.String()
-			So(s, ShouldEqual, "s3://bucket/file")
+			So(original.String(), ShouldEqual, "s3://bucket/file")
 		})
 	})
 }
