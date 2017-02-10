@@ -26,9 +26,9 @@ func processMessage(message *sarama.ConsumerMessage, filterer handlers.FilterFun
 		return err
 	}
 
-	log.Debug(fmt.Sprintf("About to process:%#v", filterRequest), nil)
+	log.Debug(fmt.Sprintf("About to process:%s", filterRequest.String()), nil)
 	filterer(filterRequest)
-	log.Debug(fmt.Sprintf("Finished processing:%#v", filterRequest), nil)
+	log.Debug(fmt.Sprintf("Finished processing:%s", filterRequest.String()), nil)
 
 	return nil
 }

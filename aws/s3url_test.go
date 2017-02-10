@@ -55,6 +55,16 @@ func TestS3URLCanBeMarshaledAndUnmarshaled(t *testing.T) {
 	})
 }
 
+func TestString(t *testing.T) {
+	var original, _ = NewS3URL("s3://bucket/file")
+
+	Convey("String should include the s3 url", t, func() {
+		Convey("Then the string should resemble the original", func() {
+			So(original.String(), ShouldEqual, "s3://bucket/file")
+		})
+	})
+}
+
 func TestNew(t *testing.T) {
 
 	Convey("Given a valid s3 url", t, func() {

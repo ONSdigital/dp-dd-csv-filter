@@ -1,6 +1,8 @@
 package event
 
 import (
+	"fmt"
+
 	"github.com/ONSdigital/dp-dd-csv-filter/aws"
 	"github.com/ONSdigital/go-ns/log"
 )
@@ -25,4 +27,8 @@ func NewFilterRequest(inputUrl string, outputUrl string, dimensions map[string][
 		return NilRequest, err
 	}
 	return FilterRequest{InputURL: input, OutputURL: output, Dimensions: dimensions}, nil
+}
+
+func (f *FilterRequest) String() string {
+	return fmt.Sprintf("FilterRequest{InputURL:\"%s\", OutputURL: \"%s\", Dimensions: %v}", f.InputURL.String(), f.OutputURL.String(), f.Dimensions)
 }

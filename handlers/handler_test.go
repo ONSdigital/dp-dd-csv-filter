@@ -83,7 +83,7 @@ func (p *MockCSVProcessor) Process(r io.Reader, w io.Writer, d map[string][]stri
 	mutex.Lock()
 	defer mutex.Unlock()
 	p.invocations++
-	if (p.shouldPanic) {
+	if p.shouldPanic {
 		panic(PANIC_MESSAGE)
 	}
 }
@@ -173,7 +173,6 @@ func TestHandler(t *testing.T) {
 		So(splitterResponse, ShouldResemble, filterRespUnsupportedFileType)
 		So(status, ShouldResemble, http.StatusBadRequest)
 	})
-
 
 	Convey("Should handle a panic.", t, func() {
 		recorder := httptest.NewRecorder()

@@ -67,3 +67,12 @@ func TestFilterRequestCanBeMarshaledAndUnmarshaled(t *testing.T) {
 		})
 	})
 }
+func TestString(t *testing.T) {
+	var filterRequest, _ = NewFilterRequest(inputUrl, outputUrl, map[string][]string{"Foo": {"bar"}})
+
+	Convey("Given a filterRequest", t, func() {
+		Convey("Then the String() should resemble the original", func() {
+			So(filterRequest.String(), ShouldEqual, `FilterRequest{InputURL:"s3://input-bucket-name/input_folder/filter.csv", OutputURL: "s3://output-bucket-name/output_folder/filter.csv", Dimensions: map[Foo:[bar]]}`)
+		})
+	})
+}
