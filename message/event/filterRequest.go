@@ -1,9 +1,10 @@
 package event
 
 import (
+	"fmt"
+
 	"github.com/ONSdigital/dp-dd-csv-filter/aws"
 	"github.com/ONSdigital/go-ns/log"
-	"fmt"
 )
 
 type FilterRequest struct {

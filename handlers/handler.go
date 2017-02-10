@@ -12,12 +12,13 @@ import (
 	"strconv"
 	"time"
 
+	"fmt"
+	"runtime/debug"
+
 	"github.com/ONSdigital/dp-dd-csv-filter/aws"
 	"github.com/ONSdigital/dp-dd-csv-filter/filter"
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/ONSdigital/go-ns/log"
-	"fmt"
-	"runtime/debug"
 )
 
 const csvFileExt = ".csv"
