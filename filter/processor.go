@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"github.com/ONSdigital/go-ns/log"
 )
 
 const (
@@ -42,6 +43,7 @@ func (p *Processor) Process(r io.Reader, w io.Writer, dimensions map[string][]st
 	dimensionLocations := make(map[string]int)
 
 	lineCounter := 0
+	linesWritten := 0
 csvLoop:
 	for {
 		row, err := csvReader.Read()
@@ -64,10 +66,12 @@ csvLoop:
 			}
 			if allDimensionsMatch(row, dimensions, dimensionLocations) {
 				writeLine(csvWriter, row)
+				linesWritten++
 			}
 		}
 		lineCounter++
 	}
+	log.Debug(fmt.Sprintf("Finished processing csv file, filter result: %d of %d rows", linesWritten, lineCounter), nil)
 }
 
 func writeLine(csvWriter *csv.Writer, row []string) {
