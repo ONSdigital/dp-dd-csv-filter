@@ -33,7 +33,7 @@ var KafkaConsumerTopic = "filter-request"
 var KafkaTransformTopic = "transform-request"
 
 // OutputS3Bucket the name of the bucket to send filtered csv files to
-var OutputS3Bucket = "dp-dd-csv-filter/" + os.Getenv("USER") + "/filtered/"
+var OutputS3Bucket = "dp-dd-csv-filter-develop/" + os.Getenv("USER") + "/filtered/"
 
 func init() {
 	if bindAddrEnv := os.Getenv(bindAddrKey); len(bindAddrEnv) > 0 {
