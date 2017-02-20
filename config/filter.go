@@ -8,9 +8,11 @@ import (
 
 const bindAddrKey = "BIND_ADDR"
 const kafkaAddrKey = "KAFKA_ADDR"
-const kafkaConsumerGroup = "KAFKA_CONSUMER_GROUP"
-const kafkaConsumerTopic = "KAFKA_CONSUMER_TOPIC"
+const kafkaConsumerGroupKey = "KAFKA_CONSUMER_GROUP"
+const kafkaConsumerTopicKey = "KAFKA_CONSUMER_TOPIC"
 const awsRegionKey = "AWS_REGION"
+const outputS3BucketKey = "OUTPUT_S3_BUCKET"
+const kafkaTransformTopicKey = "KAFKA_TRANSFORM_TOPIC"
 
 // BindAddr the address to bind to.
 var BindAddr = ":21100"
@@ -27,6 +29,12 @@ var KafkaConsumerGroup = "filter-request"
 // KafkaConsumerTopic the name of the topic to consume messages from.
 var KafkaConsumerTopic = "filter-request"
 
+// KafkaTransformTopic the name of the topic to send transform request messages to.
+var KafkaTransformTopic = "transform-request"
+
+// OutputS3Bucket the name of the bucket to send filtered csv files to
+var OutputS3Bucket = "dp-dd-csv-filter-develop/" + os.Getenv("USER") + "/filtered/"
+
 func init() {
 	if bindAddrEnv := os.Getenv(bindAddrKey); len(bindAddrEnv) > 0 {
 		BindAddr = bindAddrEnv
@@ -40,12 +48,20 @@ func init() {
 		AWSRegion = awsRegionEnv
 	}
 
-	if consumerGroupEnv := os.Getenv(kafkaConsumerGroup); len(consumerGroupEnv) > 0 {
+	if consumerGroupEnv := os.Getenv(kafkaConsumerGroupKey); len(consumerGroupEnv) > 0 {
 		KafkaConsumerGroup = consumerGroupEnv
 	}
 
-	if consumerTopicEnv := os.Getenv(kafkaConsumerTopic); len(consumerTopicEnv) > 0 {
+	if consumerTopicEnv := os.Getenv(kafkaConsumerTopicKey); len(consumerTopicEnv) > 0 {
 		KafkaConsumerTopic = consumerTopicEnv
+	}
+
+	if transformTopicEnv := os.Getenv(kafkaTransformTopicKey); len(transformTopicEnv) > 0 {
+		KafkaTransformTopic = transformTopicEnv
+	}
+
+	if s3BucketEnv := os.Getenv(outputS3BucketKey); len(s3BucketEnv) > 0 {
+		OutputS3Bucket = s3BucketEnv
 	}
 
 }
@@ -53,10 +69,12 @@ func init() {
 func Load() {
 	// Will call init().
 	log.Debug("dp-csv-filter Configuration", log.Data{
-		bindAddrKey:        BindAddr,
-		kafkaAddrKey:       KafkaAddr,
-		awsRegionKey:       AWSRegion,
-		kafkaConsumerGroup: KafkaConsumerGroup,
-		kafkaConsumerTopic: KafkaConsumerTopic,
+		bindAddrKey:            BindAddr,
+		kafkaAddrKey:           KafkaAddr,
+		awsRegionKey:           AWSRegion,
+		kafkaConsumerGroupKey:  KafkaConsumerGroup,
+		kafkaConsumerTopicKey:  KafkaConsumerTopic,
+		kafkaTransformTopicKey: KafkaTransformTopic,
+		outputS3BucketKey:      OutputS3Bucket,
 	})
 }

@@ -16,9 +16,12 @@ import (
 	"runtime/debug"
 
 	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/config"
 	"github.com/ONSdigital/dp-dd-csv-filter/filter"
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/ONSdigital/go-ns/log"
+	"github.com/Shopify/sarama"
+	"strings"
 )
 
 const csvFileExt = ".csv"
@@ -45,7 +48,11 @@ var filterRespUnmarshalBody = FilterResponse{"Error when attempting to unmarshal
 var filterRespUnsupportedFileType = FilterResponse{"Unspported file type. Please specify a filePath for a .csv file."}
 var filterResponseSuccess = FilterResponse{"Your request is being processed."}
 
-// Handle CSV filter handler. Get the requested file from AWS S3, filter it to a temporary file, then upload the temporary file.
+var producer sarama.SyncProducer
+var outputS3Bucket = config.OutputS3Bucket
+var transformTopic = config.KafkaTransformTopic
+
+// Handle CSV filter handler. Get the requested file from AWS S3, filter it to a temporary file, upload the temporary file to the filter bucket, send a message to request the file is transformed..
 func Handle(w http.ResponseWriter, req *http.Request) {
 	bytes, err := readFilterRequestBody(req.Body)
 	defer req.Body.Close()
@@ -102,16 +109,64 @@ func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 
 	csvProcessor.Process(awsReader, bufio.NewWriter(outputFile), filterRequest.Dimensions)
 
+	filterUrl, err := getFilterS3Url(filterRequest.OutputURL)
+	if err != nil {
+		log.Error(err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
+		return FilterResponse{"Unable to obtain filter s3 url to send filtered file to: " + err.Error()}
+	}
+
 	tmpFile, err := os.Open(outputFileLocation)
 	if err != nil {
 		log.Error(err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
 	}
 
-	awsService.SaveFile(bufio.NewReader(tmpFile), filterRequest.OutputURL)
+	awsService.SaveFile(bufio.NewReader(tmpFile), filterUrl)
 
 	os.Remove(outputFileLocation)
 
+	sendTransformMessage(filterRequest, filterUrl)
+
 	return filterResponseSuccess
+}
+
+func getFilterS3Url(outputUrl aws.S3URL) (aws.S3URL, error) {
+	path := outputUrl.GetFilePath()
+	tokens := strings.Split(path, "/")
+	filename := tokens[len(tokens)-1]
+	filterUrlString := outputS3Bucket
+	if !strings.HasPrefix(filterUrlString, "s3://") {
+		filterUrlString = "s3://" + filterUrlString
+	}
+	if !strings.HasSuffix(filterUrlString, "/") {
+		filterUrlString = filterUrlString + "/"
+	}
+	return aws.NewS3URL(filterUrlString + filename)
+}
+
+func sendTransformMessage(filterRequest event.FilterRequest, filterUrl aws.S3URL) {
+	message := event.NewTransformRequest(filterUrl, filterRequest.OutputURL, filterRequest.RequestID)
+
+	messageJSON, err := json.Marshal(message)
+	if err != nil {
+		log.ErrorC(filterRequest.RequestID, err, log.Data{
+			"details": "Could not create the json representation of message",
+			"message": messageJSON,
+		})
+		panic(err)
+	}
+
+	producerMsg := &sarama.ProducerMessage{
+		Topic: transformTopic,
+		Value: sarama.ByteEncoder(messageJSON),
+	}
+
+	log.Debug("Sending transformRequest message", log.Data{"message": messageJSON})
+	_, _, err = producer.SendMessage(producerMsg)
+	if err != nil {
+		log.Error(err, log.Data{
+			"details": "Failed to add messages to Kafka",
+		})
+	}
 }
 
 func setReader(reader requestBodyReader) {
@@ -124,4 +179,16 @@ func setCSVProcessor(p filter.CSVProcessor) {
 
 func setAWSClient(c aws.AWSService) {
 	awsService = c
+}
+
+func SetProducer(p sarama.SyncProducer) {
+	producer = p
+}
+
+func setOutputS3Bucket(o string) {
+	outputS3Bucket = o
+}
+
+func setTransformTopic(t string) {
+	transformTopic = t
 }
