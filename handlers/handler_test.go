@@ -13,8 +13,8 @@ import (
 
 	"github.com/ONSdigital/dp-dd-csv-filter/aws"
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/Shopify/sarama"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 var mutex = &sync.Mutex{}
@@ -28,7 +28,6 @@ type MockAWSCli struct {
 	fileBytes      []byte
 	err            error
 }
-
 
 func newMockAwsClient() *MockAWSCli {
 	mock := &MockAWSCli{requestedFiles: make(map[string]int), savedFiles: make(map[string]int)}
@@ -92,10 +91,10 @@ func (p *MockCSVProcessor) Process(r io.Reader, w io.Writer, d map[string][]stri
 
 // MockProducer
 type MockProducer struct {
-	sentMessages []string
-	sendMessageError error
+	sentMessages            []string
+	sendMessageError        error
 	sendMessagesInvocations int
-	messageTopics []string
+	messageTopics           []string
 }
 
 func newMockProducer() *MockProducer {

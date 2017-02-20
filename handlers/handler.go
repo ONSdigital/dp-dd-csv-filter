@@ -16,11 +16,11 @@ import (
 	"runtime/debug"
 
 	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/config"
 	"github.com/ONSdigital/dp-dd-csv-filter/filter"
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/Shopify/sarama"
-	"github.com/ONSdigital/dp-dd-csv-filter/config"
 	"strings"
 )
 
@@ -134,10 +134,10 @@ func getFilterS3Url(outputUrl aws.S3URL) (aws.S3URL, error) {
 	tokens := strings.Split(path, "/")
 	filename := tokens[len(tokens)-1]
 	filterUrlString := outputS3Bucket
-	if (!strings.HasPrefix(filterUrlString, "s3://")) {
+	if !strings.HasPrefix(filterUrlString, "s3://") {
 		filterUrlString = "s3://" + filterUrlString
 	}
-	if (!strings.HasSuffix(filterUrlString, "/")) {
+	if !strings.HasSuffix(filterUrlString, "/") {
 		filterUrlString = filterUrlString + "/"
 	}
 	return aws.NewS3URL(filterUrlString + filename)

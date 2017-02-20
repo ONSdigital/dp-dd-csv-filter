@@ -8,7 +8,7 @@ import (
 )
 
 type FilterRequest struct {
-	RequestID string               `json:"requestId"`
+	RequestID  string              `json:"requestId"`
 	InputURL   aws.S3URL           `json:"inputUrl"`
 	OutputURL  aws.S3URL           `json:"outputUrl"`
 	Dimensions map[string][]string `json:"dimensions"`

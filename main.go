@@ -9,9 +9,9 @@ import (
 	"github.com/ONSdigital/dp-dd-csv-filter/handlers"
 	"github.com/ONSdigital/dp-dd-csv-filter/message"
 	"github.com/ONSdigital/go-ns/log"
+	"github.com/Shopify/sarama"
 	"github.com/bsm/sarama-cluster"
 	"github.com/gorilla/pat"
-	"github.com/Shopify/sarama"
 )
 
 func main() {
