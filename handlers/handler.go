@@ -160,7 +160,7 @@ func sendTransformMessage(filterRequest event.FilterRequest, filterUrl aws.S3URL
 		Value: sarama.ByteEncoder(messageJSON),
 	}
 
-	log.Debug("Sending transformRequest message", log.Data{"message": messageJSON})
+	log.Debug("Sending transformRequest message", log.Data{"message-content": string(messageJSON)})
 	_, _, err = producer.SendMessage(producerMsg)
 	if err != nil {
 		log.Error(err, log.Data{
