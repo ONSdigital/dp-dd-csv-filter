@@ -1,0 +1,16 @@
+---
+
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: golang
+    tag: 1.7.4
+
+inputs:
+  - name: dp-dd-csv-filter
+    path: go/src/github.com/ONSdigital/dp-dd-csv-filter
+
+run:
+  path: go/src/github.com/ONSdigital/dp-dd-csv-filter/ci/scripts/unit.sh
