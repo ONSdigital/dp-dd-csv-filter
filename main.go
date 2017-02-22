@@ -9,6 +9,7 @@ import (
 	"github.com/ONSdigital/dp-dd-csv-filter/handlers"
 	"github.com/ONSdigital/dp-dd-csv-filter/message"
 	"github.com/ONSdigital/go-ns/log"
+	"github.com/Shopify/sarama"
 	"github.com/bsm/sarama-cluster"
 	"github.com/gorilla/pat"
 )
@@ -35,6 +36,19 @@ func main() {
 			os.Exit(1)
 		}
 	}()
+
+	kafkaConfig := sarama.NewConfig()
+	kafkaConfig.Producer.Retry.Max = 5
+	kafkaConfig.Producer.RequiredAcks = sarama.WaitForAll
+	kafkaConfig.Producer.Return.Successes = true
+	kafkaConfig.Producer.Return.Errors = true
+
+	producer, err := sarama.NewSyncProducer([]string{config.KafkaAddr}, kafkaConfig)
+	if err != nil {
+		log.Error(err, log.Data{"message": "Failed to create message producer."})
+		os.Exit(1)
+	}
+	handlers.SetProducer(producer)
 
 	consumerConfig := cluster.NewConfig()
 	consumer, err := cluster.NewConsumer([]string{config.KafkaAddr}, config.KafkaConsumerGroup, []string{config.KafkaConsumerTopic}, consumerConfig)

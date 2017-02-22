@@ -8,6 +8,7 @@ import (
 )
 
 type FilterRequest struct {
+	RequestID  string              `json:"requestId"`
 	InputURL   aws.S3URL           `json:"inputUrl"`
 	OutputURL  aws.S3URL           `json:"outputUrl"`
 	Dimensions map[string][]string `json:"dimensions"`
@@ -15,6 +16,7 @@ type FilterRequest struct {
 
 var NilRequest = FilterRequest{}
 
+// todo: include RequestID - see #528
 func NewFilterRequest(inputUrl string, outputUrl string, dimensions map[string][]string) (FilterRequest, error) {
 	var input, output aws.S3URL
 	var err error
@@ -30,5 +32,5 @@ func NewFilterRequest(inputUrl string, outputUrl string, dimensions map[string][
 }
 
 func (f *FilterRequest) String() string {
-	return fmt.Sprintf("FilterRequest{InputURL:\"%s\", OutputURL: \"%s\", Dimensions: %v}", f.InputURL.String(), f.OutputURL.String(), f.Dimensions)
+	return fmt.Sprintf(`FilterRequest{RequestID: "%v", InputURL:"%s", OutputURL: "%s", Dimensions: %v}`, f.RequestID, f.InputURL.String(), f.OutputURL.String(), f.Dimensions)
 }
