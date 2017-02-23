@@ -16,19 +16,18 @@ type FilterRequest struct {
 
 var NilRequest = FilterRequest{}
 
-// todo: include RequestID - see #528
-func NewFilterRequest(inputUrl string, outputUrl string, dimensions map[string][]string) (FilterRequest, error) {
+func NewFilterRequest(requestId string, inputUrl string, outputUrl string, dimensions map[string][]string) (FilterRequest, error) {
 	var input, output aws.S3URL
 	var err error
 	if input, err = aws.NewS3URL(inputUrl); err != nil {
-		log.Error(err, log.Data{"Details": "Invalid inputUrl"})
+		log.ErrorC(requestId, err, log.Data{"Details": "Invalid inputUrl"})
 		return NilRequest, err
 	}
 	if output, err = aws.NewS3URL(outputUrl); err != nil {
-		log.Error(err, log.Data{"Details": "Invalid outputUrl"})
+		log.ErrorC(requestId, err, log.Data{"Details": "Invalid outputUrl"})
 		return NilRequest, err
 	}
-	return FilterRequest{InputURL: input, OutputURL: output, Dimensions: dimensions}, nil
+	return FilterRequest{RequestID: requestId, InputURL: input, OutputURL: output, Dimensions: dimensions}, nil
 }
 
 func (f *FilterRequest) String() string {

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"fmt"
-	"runtime/debug"
+	"strings"
 
 	"github.com/ONSdigital/dp-dd-csv-filter/aws"
 	"github.com/ONSdigital/dp-dd-csv-filter/config"
@@ -21,7 +21,6 @@ import (
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/ONSdigital/go-ns/log"
 	"github.com/Shopify/sarama"
-	"strings"
 )
 
 const csvFileExt = ".csv"
@@ -58,14 +57,14 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 
 	if err != nil {
-		log.Error(err, nil)
+		log.ErrorR(req, err, nil)
 		WriteResponse(w, filterRespReadReqBodyErr, http.StatusBadRequest)
 		return
 	}
 
 	var filterRequest event.FilterRequest
 	if err := json.Unmarshal(bytes, &filterRequest); err != nil {
-		log.Error(err, nil)
+		log.ErrorR(req, err, nil)
 		WriteResponse(w, filterRespUnmarshalBody, http.StatusBadRequest)
 		return
 	}
@@ -82,42 +81,42 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 
 	if fileType := filepath.Ext(filterRequest.InputURL.GetFilePath()); fileType != csvFileExt {
-		log.Error(unsupportedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
+		log.ErrorC(filterRequest.RequestID, unsupportedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
 		return filterRespUnsupportedFileType
 	}
 
 	awsReader, err := awsService.GetCSV(filterRequest.InputURL)
 	if err != nil {
-		log.Error(awsClientErr, log.Data{"details": err.Error()})
+		log.ErrorC(filterRequest.RequestID, awsClientErr, log.Data{"details": err.Error()})
 		return FilterResponse{err.Error()}
 	}
 
 	outputFileLocation := "/var/tmp/csv_filter_" + strconv.Itoa(time.Now().Nanosecond()) + ".csv"
 	outputFile, err := os.Create(outputFileLocation)
 	if err != nil {
-		log.Error(err, log.Data{"message": "Error creating temp output file in location " + outputFileLocation})
+		log.ErrorC(filterRequest.RequestID, err, log.Data{"message": "Error creating temp output file in location " + outputFileLocation})
 		panic(err)
 	}
 
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Printf("Something went wrong: %s\n%s", r, debug.Stack())
 			message := fmt.Sprintf("%s", r)
+			log.ErrorC(filterRequest.RequestID, errors.New(message), log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
 			resp = FilterResponse{message}
 		}
 	}()
 
-	csvProcessor.Process(awsReader, bufio.NewWriter(outputFile), filterRequest.Dimensions)
+	csvProcessor.Process(filterRequest.RequestID, awsReader, bufio.NewWriter(outputFile), filterRequest.Dimensions)
 
 	filterUrl, err := getFilterS3Url(filterRequest.OutputURL)
 	if err != nil {
-		log.Error(err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
+		log.ErrorC(filterRequest.RequestID, err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
 		return FilterResponse{"Unable to obtain filter s3 url to send filtered file to: " + err.Error()}
 	}
 
 	tmpFile, err := os.Open(outputFileLocation)
 	if err != nil {
-		log.Error(err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
+		log.ErrorC(filterRequest.RequestID, err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
 	}
 
 	awsService.SaveFile(bufio.NewReader(tmpFile), filterUrl)
@@ -163,7 +162,7 @@ func sendTransformMessage(filterRequest event.FilterRequest, filterUrl aws.S3URL
 	log.Debug("Sending transformRequest message", log.Data{"message-content": string(messageJSON)})
 	_, _, err = producer.SendMessage(producerMsg)
 	if err != nil {
-		log.Error(err, log.Data{
+		log.ErrorC(filterRequest.RequestID, err, log.Data{
 			"details": "Failed to add messages to Kafka",
 		})
 	}

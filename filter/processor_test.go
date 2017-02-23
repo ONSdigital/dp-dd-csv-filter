@@ -23,13 +23,13 @@ func TestProcessor(t *testing.T) {
 
 		Convey("When the processor is called with no dimensions to filter \n", func() {
 			dimensions := map[string][]string{}
-			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
+			Processor.Process("requestId", bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 277, ShouldBeTrue)
 		})
 
 		Convey("When the processor is called with a single dimension to filter \n", func() {
 			dimensions := map[string][]string{"NACE": {"CI_0000072"}} // 08 - Other mining and quarrying
-			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
+			Processor.Process("requestId", bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 10, ShouldBeTrue)
 
 		})
@@ -37,7 +37,7 @@ func TestProcessor(t *testing.T) {
 			dimensions := map[string][]string{
 				"NACE":             {"CI_0000072"}, // 08 - Other mining and quarrying
 				"Prodcom Elements": {"CI_0021513"}} // Work done
-			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
+			Processor.Process("requestId", bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 2, ShouldBeTrue)
 
 		})
@@ -45,7 +45,7 @@ func TestProcessor(t *testing.T) {
 			dimensions := map[string][]string{
 				"NACE":             {"CI_0000072", "CI_0008197"}, // "08 - Other mining and quarrying", "1012 - Processing and preserving of poultry meat"
 				"Prodcom Elements": {"CI_0021513", "CI_0021514"}} // "Work done", "Waste Products"
-			Processor.Process(bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
+			Processor.Process("requestId", bufio.NewReader(inputFile), bufio.NewWriter(outputFile), dimensions)
 			So(countLinesInFile(outputFile.Name()) == 5, ShouldBeTrue)
 
 		})
