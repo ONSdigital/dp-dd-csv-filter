@@ -20,7 +20,7 @@ func TestNewFilterRequest(t *testing.T) {
 
 	Convey("Given a call to NewFilterRequest", t, func() {
 
-		var filterRequest, _ = NewFilterRequest(inputUrl, outputUrl, map[string][]string{})
+		var filterRequest, _ = NewFilterRequest("requestId", inputUrl, outputUrl, map[string][]string{})
 
 		Convey("Then the inputUrl should have correct bucket and filename", func() {
 			So(filterRequest.InputURL.GetBucketName(), ShouldEqual, inputBucket)
@@ -36,7 +36,7 @@ func TestNewFilterRequest(t *testing.T) {
 
 func TestNewValidatesInputURL(t *testing.T) {
 	Convey("Given a call to NewFilterRequest with an invalid input", t, func() {
-		var filterRequest, err = NewFilterRequest("invalid url", outputUrl, map[string][]string{})
+		var filterRequest, err = NewFilterRequest("requestId", "invalid url", outputUrl, map[string][]string{})
 		Convey("Then returned request is nil and err is not", func() {
 			So(err, ShouldNotEqual, nil)
 			So(filterRequest, ShouldResemble, NilRequest)
@@ -46,7 +46,7 @@ func TestNewValidatesInputURL(t *testing.T) {
 
 func TestNewValidatesOutputURL(t *testing.T) {
 	Convey("Given a call to NewFilterRequest with an invalid input", t, func() {
-		var filterRequest, err = NewFilterRequest(inputUrl, "invalid url", map[string][]string{})
+		var filterRequest, err = NewFilterRequest("requestId", inputUrl, "invalid url", map[string][]string{})
 		Convey("Then returned request is nil and err is not", func() {
 			So(err, ShouldNotEqual, nil)
 			So(filterRequest, ShouldResemble, NilRequest)
@@ -55,7 +55,7 @@ func TestNewValidatesOutputURL(t *testing.T) {
 }
 
 func TestFilterRequestCanBeMarshaledAndUnmarshaled(t *testing.T) {
-	var filterRequest, _ = NewFilterRequest(inputUrl, outputUrl, map[string][]string{})
+	var filterRequest, _ = NewFilterRequest("requestId", inputUrl, outputUrl, map[string][]string{})
 
 	Convey("Given a filterRequest marshaled to json", t, func() {
 		var marshaled, _ = json.Marshal(filterRequest)
@@ -69,11 +69,11 @@ func TestFilterRequestCanBeMarshaledAndUnmarshaled(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	var filterRequest, _ = NewFilterRequest(inputUrl, outputUrl, map[string][]string{"Foo": {"bar"}})
+	var filterRequest, _ = NewFilterRequest("myRequestId", inputUrl, outputUrl, map[string][]string{"Foo": {"bar"}})
 
 	Convey("Given a filterRequest", t, func() {
 		Convey("Then the String() should resemble the original", func() {
-			So(filterRequest.String(), ShouldEqual, `FilterRequest{RequestID: "", InputURL:"s3://input-bucket-name/input_folder/filter.csv", OutputURL: "s3://output-bucket-name/output_folder/filter.csv", Dimensions: map[Foo:[bar]]}`)
+			So(filterRequest.String(), ShouldEqual, `FilterRequest{RequestID: "myRequestId", InputURL:"s3://input-bucket-name/input_folder/filter.csv", OutputURL: "s3://output-bucket-name/output_folder/filter.csv", Dimensions: map[Foo:[bar]]}`)
 		})
 	})
 }
