@@ -11,12 +11,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"time"
+	"fmt"
 )
 
 // AWSClient interface defining the AWS client.
 type AWSService interface {
-	GetCSV(s3url S3URL) (io.Reader, error)
-	SaveFile(reader io.Reader, s3url S3URL) error
+	GetCSV(requestID string, s3url S3URL) (io.Reader, error)
+	SaveFile(requestID string, reader io.Reader, s3url S3URL) error
 }
 
 // Client AWS client implementation.
@@ -27,7 +29,13 @@ func NewService() AWSService {
 	return &Service{}
 }
 
-func (cli *Service) SaveFile(reader io.Reader, s3url S3URL) error {
+func (cli *Service) SaveFile(requestID string, reader io.Reader, s3url S3URL) error {
+
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		log.DebugC(requestID, fmt.Sprintf("SaveFile, duration_ns: %d", endTime.Sub(startTime).Nanoseconds()), log.Data{})
+	}()
 
 	uploader := s3manager.NewUploader(session.New(&aws.Config{Region: aws.String(config.AWSRegion)}))
 
@@ -50,13 +58,19 @@ func (cli *Service) SaveFile(reader io.Reader, s3url S3URL) error {
 }
 
 // GetFile get the requested file from AWS.
-func (cli *Service) GetCSV(s3url S3URL) (io.Reader, error) {
+func (cli *Service) GetCSV(requestID string, s3url S3URL) (io.Reader, error) {
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		log.DebugC(requestID, fmt.Sprintf("GetCSV, duration_ns: %d", endTime.Sub(startTime).Nanoseconds()), log.Data{})
+	}()
+
 	session, err := session.NewSession(&aws.Config{
 		Region: aws.String(config.AWSRegion),
 	})
 
 	if err != nil {
-		log.Error(err, nil)
+		log.ErrorC(requestID, err, nil)
 		return nil, err
 	}
 
@@ -72,7 +86,7 @@ func (cli *Service) GetCSV(s3url S3URL) (io.Reader, error) {
 	result, err := s3Service.GetObject(request)
 
 	if err != nil {
-		log.Error(err, nil)
+		log.ErrorC(requestID, err, log.Data{"request": request})
 		return nil, err
 	}
 
@@ -80,7 +94,7 @@ func (cli *Service) GetCSV(s3url S3URL) (io.Reader, error) {
 	defer result.Body.Close()
 
 	if err != nil {
-		log.Error(err, nil)
+		log.ErrorC(requestID, err, log.Data{"request": request})
 		return nil, err
 	}
 
