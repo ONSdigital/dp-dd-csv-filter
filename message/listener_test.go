@@ -22,6 +22,7 @@ func mockFilterFunc(filterRequest event.FilterRequest) handlers.FilterResponse {
 
 func TestProcessor(t *testing.T) {
 	event, _ := event.NewFilterRequest(
+		"requestId",
 		"s3://bucket/file",
 		"s3://bucket/file",
 		map[string][]string{

@@ -80,7 +80,7 @@ func newMockCSVProcessor() *MockCSVProcessor {
 }
 
 // Process mock implementation of the Process function.
-func (p *MockCSVProcessor) Process(r io.Reader, w io.Writer, d map[string][]string) {
+func (p *MockCSVProcessor) Process(requestId string, r io.Reader, w io.Writer, d map[string][]string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	p.invocations++
@@ -320,7 +320,7 @@ func createRequest(body interface{}) *http.Request {
 }
 
 func createFilterRequest(input string, output string, dimensions map[string][]string) event.FilterRequest {
-	req, err := event.NewFilterRequest(input, output, dimensions)
+	req, err := event.NewFilterRequest("requestId", input, output, dimensions)
 	if err != nil {
 		panic(err)
 	}
