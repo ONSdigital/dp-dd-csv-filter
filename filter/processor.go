@@ -15,7 +15,7 @@ const (
 
 // CSVProcessor defines the CSVProcessor interface.
 type CSVProcessor interface {
-	Process(r io.Reader, w io.Writer, dimensions map[string][]string)
+	Process(requestId string, r io.Reader, w io.Writer, dimensions map[string][]string)
 }
 
 // Processor implementation of the CSVProcessor interface.
@@ -36,7 +36,7 @@ func getDimensionLocations(row []string) map[string]int {
 	return result
 }
 
-func (p *Processor) Process(r io.Reader, w io.Writer, dimensions map[string][]string) {
+func (p *Processor) Process(requestId string, r io.Reader, w io.Writer, dimensions map[string][]string) {
 
 	csvReader, csvWriter := csv.NewReader(r), csv.NewWriter(w)
 	defer csvWriter.Flush()
@@ -59,26 +59,26 @@ csvLoop:
 		}
 
 		if lineCounter == 0 || len(dimensions) < 1 {
-			writeLine(csvWriter, row)
+			writeLine(requestId, csvWriter, row)
 		} else {
 			if lineCounter == 1 {
 				dimensionLocations = getDimensionLocations(row)
 				fmt.Printf("%v", dimensionLocations)
 			}
 			if allDimensionsMatch(row, dimensions, dimensionLocations) {
-				writeLine(csvWriter, row)
+				writeLine(requestId, csvWriter, row)
 				linesWritten++
 			}
 		}
 		lineCounter++
 	}
-	log.Debug(fmt.Sprintf("Finished processing csv file, filter result: %d of %d rows", linesWritten, lineCounter), nil)
+	log.DebugC(requestId, fmt.Sprintf("Finished processing csv file, filter result: %d of %d rows", linesWritten, lineCounter), nil)
 }
 
-func writeLine(csvWriter *csv.Writer, row []string) {
+func writeLine(requestId string, csvWriter *csv.Writer, row []string) {
 	err := csvWriter.Write(row)
 	if err != nil {
-		fmt.Println("Error occured whilst writing to csv file", err.Error())
+		log.ErrorC(requestId, err, log.Data{"error": err, "message": "Error occured whilst writing to csv file"})
 	}
 }
 
