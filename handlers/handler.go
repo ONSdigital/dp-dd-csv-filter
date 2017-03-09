@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/ons_aws"
 	"github.com/ONSdigital/dp-dd-csv-filter/config"
 	"github.com/ONSdigital/dp-dd-csv-filter/filter"
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
@@ -37,7 +37,7 @@ type FilterFunc func(event.FilterRequest) FilterResponse
 
 var unsupportedFileTypeErr = errors.New("Unspported file type.")
 var awsClientErr = errors.New("Error while attempting get to get from from AWS s3 bucket.")
-var awsService = aws.NewService()
+var awsService = ons_aws.NewService()
 var csvProcessor filter.CSVProcessor = filter.NewCSVProcessor()
 var readFilterRequestBody requestBodyReader = ioutil.ReadAll
 
@@ -134,7 +134,7 @@ func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 	return filterResponseSuccess
 }
 
-func getFilterS3Url(outputUrl aws.S3URL) (aws.S3URL, error) {
+func getFilterS3Url(outputUrl ons_aws.S3URL) (ons_aws.S3URL, error) {
 	path := outputUrl.GetFilePath()
 	tokens := strings.Split(path, "/")
 	filename := tokens[len(tokens)-1]
@@ -145,10 +145,10 @@ func getFilterS3Url(outputUrl aws.S3URL) (aws.S3URL, error) {
 	if !strings.HasSuffix(filterUrlString, "/") {
 		filterUrlString = filterUrlString + "/"
 	}
-	return aws.NewS3URL(filterUrlString + filename)
+	return ons_aws.NewS3URL(filterUrlString + filename)
 }
 
-func sendTransformMessage(filterRequest event.FilterRequest, filterUrl aws.S3URL) {
+func sendTransformMessage(filterRequest event.FilterRequest, filterUrl ons_aws.S3URL) {
 	message := event.NewTransformRequest(filterUrl, filterRequest.OutputURL, filterRequest.RequestID)
 
 	messageJSON, err := json.Marshal(message)
@@ -182,7 +182,7 @@ func setCSVProcessor(p filter.CSVProcessor) {
 	csvProcessor = p
 }
 
-func setAWSClient(c aws.AWSService) {
+func setAWSClient(c ons_aws.AWSService) {
 	awsService = c
 }
 
