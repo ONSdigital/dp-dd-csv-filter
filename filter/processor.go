@@ -66,10 +66,10 @@ csvLoop:
 
 		if lineCounter == 0 || len(dimensions) < 1 {
 			writeLine(requestId, csvWriter, row)
+			linesWritten++
 		} else {
 			if lineCounter == 1 {
 				dimensionLocations = getDimensionLocations(row)
-				fmt.Printf("%v", dimensionLocations)
 			}
 			if allDimensionsMatch(row, dimensions, dimensionLocations) {
 				writeLine(requestId, csvWriter, row)
