@@ -80,12 +80,18 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 // Performs the filtering as specified in the FilterRequest, returning a FilterResponse
 func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		log.DebugC(filterRequest.RequestID, fmt.Sprintf("Processed FilterRequest, duration_ns: %d", endTime.Sub(startTime).Nanoseconds()), log.Data{"start": startTime, "end": endTime})
+	}()
+
 	if fileType := filepath.Ext(filterRequest.InputURL.GetFilePath()); fileType != csvFileExt {
 		log.ErrorC(filterRequest.RequestID, unsupportedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
 		return filterRespUnsupportedFileType
 	}
 
-	awsReader, err := awsService.GetCSV(filterRequest.InputURL)
+	awsReader, err := awsService.GetCSV(filterRequest.RequestID, filterRequest.InputURL)
 	if err != nil {
 		log.ErrorC(filterRequest.RequestID, awsClientErr, log.Data{"details": err.Error()})
 		return FilterResponse{err.Error()}
@@ -119,7 +125,7 @@ func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 		log.ErrorC(filterRequest.RequestID, err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
 	}
 
-	awsService.SaveFile(bufio.NewReader(tmpFile), filterUrl)
+	awsService.SaveFile(filterRequest.RequestID, bufio.NewReader(tmpFile), filterUrl)
 
 	os.Remove(outputFileLocation)
 
@@ -159,7 +165,7 @@ func sendTransformMessage(filterRequest event.FilterRequest, filterUrl aws.S3URL
 		Value: sarama.ByteEncoder(messageJSON),
 	}
 
-	log.Debug("Sending transformRequest message", log.Data{"message-content": string(messageJSON)})
+	log.DebugC(filterRequest.RequestID,"Sending transformRequest message", log.Data{"message-content": string(messageJSON)})
 	_, _, err = producer.SendMessage(producerMsg)
 	if err != nil {
 		log.ErrorC(filterRequest.RequestID, err, log.Data{
