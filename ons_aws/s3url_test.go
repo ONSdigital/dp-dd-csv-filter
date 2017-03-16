@@ -1,4 +1,4 @@
-package aws
+package ons_aws
 
 import (
 	"encoding/json"
