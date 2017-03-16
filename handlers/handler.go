@@ -91,7 +91,8 @@ func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 		return filterRespUnsupportedFileType
 	}
 
-	awsReader, err := awsService.GetCSV(filterRequest.RequestID, filterRequest.InputURL)
+	awsReadCloser, err := awsService.GetCSV(filterRequest.RequestID, filterRequest.InputURL)
+	defer awsReadCloser.Close()
 	if err != nil {
 		log.ErrorC(filterRequest.RequestID, awsClientErr, log.Data{"details": err.Error()})
 		return FilterResponse{err.Error()}
@@ -112,7 +113,7 @@ func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 		}
 	}()
 
-	csvProcessor.Process(filterRequest.RequestID, awsReader, bufio.NewWriter(outputFile), filterRequest.Dimensions)
+	csvProcessor.Process(filterRequest.RequestID, awsReadCloser, bufio.NewWriter(outputFile), filterRequest.Dimensions)
 
 	filterUrl, err := getFilterS3Url(filterRequest.OutputURL)
 	if err != nil {

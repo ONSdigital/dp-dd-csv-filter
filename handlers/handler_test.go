@@ -35,12 +35,12 @@ func newMockAwsClient() *MockAWSCli {
 	return mock
 }
 
-func (mock *MockAWSCli) GetCSV(requestId string, fileURI ons_aws.S3URL) (io.Reader, error) {
+func (mock *MockAWSCli) GetCSV(requestId string, fileURI ons_aws.S3URL) (io.ReadCloser, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	mock.requestedFiles[fileURI.String()]++
-	return bytes.NewReader(mock.fileBytes), mock.err
+	return ioutil.NopCloser(bytes.NewReader(mock.fileBytes)), mock.err
 }
 
 func (mock *MockAWSCli) SaveFile(requestId string, reader io.Reader, filePath ons_aws.S3URL) error {
