@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ONSdigital/go-ns/log"
+	"time"
 )
 
 const (
@@ -37,14 +38,19 @@ func getDimensionLocations(row []string) map[string]int {
 }
 
 func (p *Processor) Process(requestId string, r io.Reader, w io.Writer, dimensions map[string][]string) {
+	lineCounter := 0
+	linesWritten := 0
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		log.DebugC(requestId, fmt.Sprintf("Process, duration_ns: %d", endTime.Sub(startTime).Nanoseconds()), log.Data{})
+	}()
 
 	csvReader, csvWriter := csv.NewReader(r), csv.NewWriter(w)
 	defer csvWriter.Flush()
 
 	dimensionLocations := make(map[string]int)
 
-	lineCounter := 0
-	linesWritten := 0
 csvLoop:
 	for {
 		row, err := csvReader.Read()
@@ -60,10 +66,10 @@ csvLoop:
 
 		if lineCounter == 0 || len(dimensions) < 1 {
 			writeLine(requestId, csvWriter, row)
+			linesWritten++
 		} else {
 			if lineCounter == 1 {
 				dimensionLocations = getDimensionLocations(row)
-				fmt.Printf("%v", dimensionLocations)
 			}
 			if allDimensionsMatch(row, dimensions, dimensionLocations) {
 				writeLine(requestId, csvWriter, row)

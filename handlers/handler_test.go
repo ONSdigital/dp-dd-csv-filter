@@ -11,7 +11,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/ons_aws"
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
 	"github.com/Shopify/sarama"
 	. "github.com/smartystreets/goconvey/convey"
@@ -21,7 +21,7 @@ var mutex = &sync.Mutex{}
 
 const PANIC_MESSAGE = "Panic!!!"
 
-// MockAWSCli mock implementation of aws.Client
+// MockAWSCli mock implementation of ons_aws.Client
 type MockAWSCli struct {
 	requestedFiles map[string]int
 	savedFiles     map[string]int
@@ -35,15 +35,15 @@ func newMockAwsClient() *MockAWSCli {
 	return mock
 }
 
-func (mock *MockAWSCli) GetCSV(fileURI aws.S3URL) (io.Reader, error) {
+func (mock *MockAWSCli) GetCSV(requestId string, fileURI ons_aws.S3URL) (io.ReadCloser, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	mock.requestedFiles[fileURI.String()]++
-	return bytes.NewReader(mock.fileBytes), mock.err
+	return ioutil.NopCloser(bytes.NewReader(mock.fileBytes)), mock.err
 }
 
-func (mock *MockAWSCli) SaveFile(reader io.Reader, filePath aws.S3URL) error {
+func (mock *MockAWSCli) SaveFile(requestId string, reader io.Reader, filePath ons_aws.S3URL) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -278,7 +278,7 @@ func TestHandler(t *testing.T) {
 }
 
 func TestGetFilterS3Url(t *testing.T) {
-	outputUrl, _ := aws.NewS3URL("s3://output-bucket/folder/filename.csv")
+	outputUrl, _ := ons_aws.NewS3URL("s3://output-bucket/folder/filename.csv")
 	Convey("Should return appropriate error if s3Url cannot be created.", t, func() {
 		setOutputS3Bucket("invalid s3 bucket")
 		_, err := getFilterS3Url(outputUrl)

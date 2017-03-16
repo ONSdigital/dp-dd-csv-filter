@@ -3,17 +3,17 @@ package event
 import (
 	"fmt"
 
-	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/ons_aws"
 )
 
 type TransformRequest struct {
-	InputURL  aws.S3URL `json:"inputUrl"`
-	OutputURL aws.S3URL `json:"outputUrl"`
+	InputURL  ons_aws.S3URL `json:"inputUrl"`
+	OutputURL ons_aws.S3URL `json:"outputUrl"`
 	RequestID string    `json:"requestId"`
 }
 
 // NewTransformRequest creates a new TranformRequest object.
-func NewTransformRequest(inputUrl aws.S3URL, outputUrl aws.S3URL, requestId string) TransformRequest {
+func NewTransformRequest(inputUrl ons_aws.S3URL, outputUrl ons_aws.S3URL, requestId string) TransformRequest {
 	return TransformRequest{InputURL: inputUrl, OutputURL: outputUrl, RequestID: requestId}
 }
 

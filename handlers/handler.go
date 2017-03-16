@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/ons_aws"
 	"github.com/ONSdigital/dp-dd-csv-filter/config"
 	"github.com/ONSdigital/dp-dd-csv-filter/filter"
 	"github.com/ONSdigital/dp-dd-csv-filter/message/event"
@@ -37,7 +37,7 @@ type FilterFunc func(event.FilterRequest) FilterResponse
 
 var unsupportedFileTypeErr = errors.New("Unspported file type.")
 var awsClientErr = errors.New("Error while attempting get to get from from AWS s3 bucket.")
-var awsService = aws.NewService()
+var awsService = ons_aws.NewService()
 var csvProcessor filter.CSVProcessor = filter.NewCSVProcessor()
 var readFilterRequestBody requestBodyReader = ioutil.ReadAll
 
@@ -80,12 +80,19 @@ func Handle(w http.ResponseWriter, req *http.Request) {
 // Performs the filtering as specified in the FilterRequest, returning a FilterResponse
 func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 
+	startTime := time.Now()
+	defer func() {
+		endTime := time.Now()
+		log.DebugC(filterRequest.RequestID, fmt.Sprintf("Processed FilterRequest, duration_ns: %d", endTime.Sub(startTime).Nanoseconds()), log.Data{"start": startTime, "end": endTime})
+	}()
+
 	if fileType := filepath.Ext(filterRequest.InputURL.GetFilePath()); fileType != csvFileExt {
 		log.ErrorC(filterRequest.RequestID, unsupportedFileTypeErr, log.Data{"expected": csvFileExt, "actual": fileType})
 		return filterRespUnsupportedFileType
 	}
 
-	awsReader, err := awsService.GetCSV(filterRequest.InputURL)
+	awsReadCloser, err := awsService.GetCSV(filterRequest.RequestID, filterRequest.InputURL)
+	defer awsReadCloser.Close()
 	if err != nil {
 		log.ErrorC(filterRequest.RequestID, awsClientErr, log.Data{"details": err.Error()})
 		return FilterResponse{err.Error()}
@@ -106,7 +113,7 @@ func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 		}
 	}()
 
-	csvProcessor.Process(filterRequest.RequestID, awsReader, bufio.NewWriter(outputFile), filterRequest.Dimensions)
+	csvProcessor.Process(filterRequest.RequestID, awsReadCloser, bufio.NewWriter(outputFile), filterRequest.Dimensions)
 
 	filterUrl, err := getFilterS3Url(filterRequest.OutputURL)
 	if err != nil {
@@ -119,7 +126,7 @@ func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 		log.ErrorC(filterRequest.RequestID, err, log.Data{"message": "Failed to get tmp output file for s3 uploading!"})
 	}
 
-	awsService.SaveFile(bufio.NewReader(tmpFile), filterUrl)
+	awsService.SaveFile(filterRequest.RequestID, bufio.NewReader(tmpFile), filterUrl)
 
 	os.Remove(outputFileLocation)
 
@@ -128,7 +135,7 @@ func HandleRequest(filterRequest event.FilterRequest) (resp FilterResponse) {
 	return filterResponseSuccess
 }
 
-func getFilterS3Url(outputUrl aws.S3URL) (aws.S3URL, error) {
+func getFilterS3Url(outputUrl ons_aws.S3URL) (ons_aws.S3URL, error) {
 	path := outputUrl.GetFilePath()
 	tokens := strings.Split(path, "/")
 	filename := tokens[len(tokens)-1]
@@ -139,10 +146,10 @@ func getFilterS3Url(outputUrl aws.S3URL) (aws.S3URL, error) {
 	if !strings.HasSuffix(filterUrlString, "/") {
 		filterUrlString = filterUrlString + "/"
 	}
-	return aws.NewS3URL(filterUrlString + filename)
+	return ons_aws.NewS3URL(filterUrlString + filename)
 }
 
-func sendTransformMessage(filterRequest event.FilterRequest, filterUrl aws.S3URL) {
+func sendTransformMessage(filterRequest event.FilterRequest, filterUrl ons_aws.S3URL) {
 	message := event.NewTransformRequest(filterUrl, filterRequest.OutputURL, filterRequest.RequestID)
 
 	messageJSON, err := json.Marshal(message)
@@ -159,7 +166,7 @@ func sendTransformMessage(filterRequest event.FilterRequest, filterUrl aws.S3URL
 		Value: sarama.ByteEncoder(messageJSON),
 	}
 
-	log.Debug("Sending transformRequest message", log.Data{"message-content": string(messageJSON)})
+	log.DebugC(filterRequest.RequestID,"Sending transformRequest message", log.Data{"message-content": string(messageJSON)})
 	_, _, err = producer.SendMessage(producerMsg)
 	if err != nil {
 		log.ErrorC(filterRequest.RequestID, err, log.Data{
@@ -176,7 +183,7 @@ func setCSVProcessor(p filter.CSVProcessor) {
 	csvProcessor = p
 }
 
-func setAWSClient(c aws.AWSService) {
+func setAWSClient(c ons_aws.AWSService) {
 	awsService = c
 }
 

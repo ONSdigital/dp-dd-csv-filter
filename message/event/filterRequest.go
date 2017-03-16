@@ -3,27 +3,27 @@ package event
 import (
 	"fmt"
 
-	"github.com/ONSdigital/dp-dd-csv-filter/aws"
+	"github.com/ONSdigital/dp-dd-csv-filter/ons_aws"
 	"github.com/ONSdigital/go-ns/log"
 )
 
 type FilterRequest struct {
 	RequestID  string              `json:"requestId"`
-	InputURL   aws.S3URL           `json:"inputUrl"`
-	OutputURL  aws.S3URL           `json:"outputUrl"`
+	InputURL   ons_aws.S3URL           `json:"inputUrl"`
+	OutputURL  ons_aws.S3URL           `json:"outputUrl"`
 	Dimensions map[string][]string `json:"dimensions"`
 }
 
 var NilRequest = FilterRequest{}
 
 func NewFilterRequest(requestId string, inputUrl string, outputUrl string, dimensions map[string][]string) (FilterRequest, error) {
-	var input, output aws.S3URL
+	var input, output ons_aws.S3URL
 	var err error
-	if input, err = aws.NewS3URL(inputUrl); err != nil {
+	if input, err = ons_aws.NewS3URL(inputUrl); err != nil {
 		log.ErrorC(requestId, err, log.Data{"Details": "Invalid inputUrl"})
 		return NilRequest, err
 	}
-	if output, err = aws.NewS3URL(outputUrl); err != nil {
+	if output, err = ons_aws.NewS3URL(outputUrl); err != nil {
 		log.ErrorC(requestId, err, log.Data{"Details": "Invalid outputUrl"})
 		return NilRequest, err
 	}
